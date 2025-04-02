@@ -1,3 +1,4 @@
+
 import { 
   Bell,
   Calendar, 
@@ -392,7 +393,11 @@ const Home = () => {
             <TableBody>
               {recentClaims.map((claim) => (
                 <TableRow key={claim.id}>
-                  <TableCell className="font-medium">{claim.id}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link to={`/claims/${claim.id}`} className="text-blue-600 hover:underline">
+                      {claim.id}
+                    </Link>
+                  </TableCell>
                   <TableCell>{claim.customer}</TableCell>
                   <TableCell className="hidden sm:table-cell">{claim.policyNumber}</TableCell>
                   <TableCell className="hidden md:table-cell">{claim.date}</TableCell>

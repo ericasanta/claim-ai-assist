@@ -11,6 +11,7 @@ import NewClaim from "./pages/NewClaim";
 import Analysis from "./pages/Analysis";
 import Estimates from "./pages/Estimates";
 import Assistant from "./pages/Assistant";
+import ClaimDetails from "./pages/ClaimDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<AppLayout><Home /></AppLayout>} />
           <Route path="/claims" element={<AppLayout><ClaimsList /></AppLayout>} />
           <Route path="/claims/new" element={<AppLayout><NewClaim /></AppLayout>} />
+          <Route path="/claims/:id" element={<AppLayout><ClaimDetails /></AppLayout>} />
           <Route path="/analysis" element={<AppLayout><Analysis /></AppLayout>} />
           <Route path="/estimates" element={<AppLayout><Estimates /></AppLayout>} />
           <Route path="/assistant" element={<AppLayout><Assistant /></AppLayout>} />
