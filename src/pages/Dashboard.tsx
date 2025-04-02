@@ -1,4 +1,3 @@
-
 import { 
   Bell,
   Calendar, 
@@ -195,12 +194,12 @@ const recentClaims = [
   },
 ];
 
-const Dashboard = () => {
+const Home = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Home</h2>
           <p className="text-muted-foreground">
             Welcome back, John. Here's what needs your attention today.
           </p>
@@ -421,4 +420,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Home;
