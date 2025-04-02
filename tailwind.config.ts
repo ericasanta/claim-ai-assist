@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,21 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for insurance application
+				insurance: {
+					blue: {
+						DEFAULT: '#1a365d',
+						light: '#3a6999'
+					},
+					teal: {
+						DEFAULT: '#0ea5e9',
+						light: '#38bdf8'
+					},
+					gray: {
+						light: '#f9fafb',
+						medium: '#e5e7eb'
+					}
 				}
 			},
 			borderRadius: {
@@ -84,11 +100,16 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-opacity': {
+					'0%, 100%': { opacity: '0.5' },
+					'50%': { opacity: '1' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-opacity': 'pulse-opacity 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
 			}
 		}
 	},
