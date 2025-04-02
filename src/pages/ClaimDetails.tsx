@@ -10,7 +10,8 @@ import {
   Upload,
   ChevronLeft, 
   MessageSquare, 
-  Phone
+  Phone,
+  Plus
 } from "lucide-react";
 import { 
   Card, 
