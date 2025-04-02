@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageSquare, Robot, Send, User } from "lucide-react";
+import { MessageSquare, Bot, Send, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -156,7 +156,7 @@ const Assistant = () => {
                 <Avatar className="h-8 w-8 bg-primary">
                   <AvatarImage src="" />
                   <AvatarFallback>
-                    <Robot className="h-4 w-4" />
+                    <Bot className="h-4 w-4" />
                   </AvatarFallback>
                 </Avatar>
                 <div>
@@ -182,7 +182,7 @@ const Assistant = () => {
                     {message.role === "assistant" && (
                       <Avatar className="mt-0.5 h-6 w-6">
                         <AvatarFallback>
-                          <Robot className="h-3 w-3" />
+                          <Bot className="h-3 w-3" />
                         </AvatarFallback>
                       </Avatar>
                     )}
@@ -212,7 +212,7 @@ const Assistant = () => {
                   <div className="flex items-start gap-2 rounded-lg bg-muted px-4 py-2 w-max">
                     <Avatar className="mt-0.5 h-6 w-6">
                       <AvatarFallback>
-                        <Robot className="h-3 w-3" />
+                        <Bot className="h-3 w-3" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex items-center gap-1">
