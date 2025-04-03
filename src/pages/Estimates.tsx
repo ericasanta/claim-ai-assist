@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -31,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeftIcon, ArrowRight, Check, FileText, MagicWand, Plus, ThumbsUp, Trash2 } from "lucide-react";
+import { ArrowLeftIcon, ArrowRight, Check, FileText, Sparkles, Plus, ThumbsUp, Trash2 } from "lucide-react";
 
 const additionalRecommendedItems = [
   {
@@ -77,12 +76,10 @@ const Estimates = () => {
   const [approvalNotes, setApprovalNotes] = useState("");
   const [showAssistedEstimateButton, setShowAssistedEstimateButton] = useState(true);
 
-  // Fetch damage assessments from localStorage on component mount
   useEffect(() => {
     const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
     
     if (storedAssessments.length > 0) {
-      // Convert AI damage assessments to estimate items
       const generatedItems = storedAssessments.map((assessment: any, index: number) => ({
         id: Date.now() + index,
         description: getDescriptionFromAssessment(assessment),
@@ -96,7 +93,6 @@ const Estimates = () => {
       
       setEstimateItems(generatedItems);
     } else {
-      // If no assessments in localStorage, use some initial items
       const initialItems = [
         {
           id: 1,
@@ -144,7 +140,6 @@ const Estimates = () => {
     }
   }, []);
 
-  // Helper function to generate description from damage assessment
   const getDescriptionFromAssessment = (assessment: any) => {
     const type = assessment.type || "";
     const severity = assessment.severity || "medium";
@@ -159,7 +154,6 @@ const Estimates = () => {
     return `${action} - ${type}`;
   };
 
-  // Helper function to determine category from assessment
   const getCategoryFromAssessment = (assessment: any) => {
     const type = (assessment.type || "").toLowerCase();
     
@@ -172,18 +166,15 @@ const Estimates = () => {
     }
   };
 
-  // Calculate total estimate cost
   const totalEstimateCost = estimateItems.reduce(
     (sum, item) => sum + item.totalCost,
     0
   );
 
-  // Taxes and final amount
-  const taxRate = 0.08; // 8% tax
+  const taxRate = 0.08;
   const taxAmount = totalEstimateCost * taxRate;
   const finalAmount = totalEstimateCost + taxAmount;
 
-  // Handle adding a new item
   const handleAddItem = () => {
     if (!newItem.description || newItem.unitCost <= 0) {
       toast({
@@ -215,7 +206,6 @@ const Estimates = () => {
     });
   };
 
-  // Handle assisted estimate
   const handleAssistedEstimate = () => {
     const newItems = additionalRecommendedItems.map((item) => ({
       ...item,
@@ -233,7 +223,6 @@ const Estimates = () => {
     });
   };
 
-  // Handle item removal
   const handleRemoveItem = (id: number) => {
     setEstimateItems(estimateItems.filter((item) => item.id !== id));
     toast({
@@ -242,7 +231,6 @@ const Estimates = () => {
     });
   };
 
-  // Toggle edit mode for an item
   const toggleEditItem = (id: number) => {
     if (editingItemId === id) {
       setEditingItemId(null);
@@ -251,14 +239,12 @@ const Estimates = () => {
     }
   };
 
-  // Update an item in edit mode
   const updateItem = (id: number, field: string, value: string | number) => {
     setEstimateItems(
       estimateItems.map((item) => {
         if (item.id === id) {
           const updatedItem = { ...item, [field]: value };
           
-          // Recalculate total cost if quantity or unitCost changes
           if (field === "quantity" || field === "unitCost") {
             updatedItem.totalCost = updatedItem.quantity * updatedItem.unitCost;
           }
@@ -270,14 +256,11 @@ const Estimates = () => {
     );
   };
 
-  // Handle submit for approval
   const handleSubmitForApproval = () => {
     setShowApprovalDialog(true);
   };
 
-  // Complete the approval process
   const completeApproval = () => {
-    // Store the final estimate in localStorage
     const estimateData = {
       items: estimateItems,
       totalCost: totalEstimateCost,
@@ -289,7 +272,6 @@ const Estimates = () => {
     };
     localStorage.setItem('currentEstimate', JSON.stringify(estimateData));
     
-    // Update the claim status
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const updatedClaims = claims.map((claim: any) => {
       if (claim.id === "CLM-4231") {
@@ -350,7 +332,7 @@ const Estimates = () => {
                       onClick={handleAssistedEstimate}
                       className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
                     >
-                      <MagicWand className="mr-2 h-4 w-4" />
+                      <Sparkles className="mr-2 h-4 w-4" />
                       Assisted Estimate
                     </Button>
                   )}
@@ -687,7 +669,6 @@ const Estimates = () => {
         </div>
       </div>
 
-      {/* Approval Dialog */}
       <AlertDialog 
         open={showApprovalDialog} 
         onOpenChange={setShowApprovalDialog}
