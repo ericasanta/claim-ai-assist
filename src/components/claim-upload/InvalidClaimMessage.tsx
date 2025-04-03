@@ -1,6 +1,8 @@
 
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const InvalidClaimMessage = () => {
   return (
@@ -15,6 +17,13 @@ const InvalidClaimMessage = () => {
             This upload link is invalid or has expired. Please contact your claims adjuster for assistance.
           </CardDescription>
         </CardHeader>
+        <CardContent className="flex justify-center pt-4">
+          <Link to="/claims">
+            <Button>
+              Return to Claims
+            </Button>
+          </Link>
+        </CardContent>
       </Card>
     </div>
   );

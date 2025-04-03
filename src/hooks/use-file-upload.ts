@@ -93,15 +93,38 @@ export const useFileUpload = () => {
               const claims = JSON.parse(localStorage.getItem('claims') || '[]');
               const updatedClaims = claims.map((claim: any) => {
                 if (claim.id === claimId) {
+                  // Create a new task for this upload
+                  const newTask = {
+                    id: `TSK-${Math.floor(Math.random() * 10000)}`,
+                    description: `Review ${uploadedFiles.length} new document(s) uploaded for claim ${claimId}`,
+                    dueIn: "Today",
+                    priority: "high",
+                    type: "documentReview"
+                  };
+                  
                   return {
                     ...claim,
                     hasUploads: true,
-                    uploadCount: (claim.uploadCount || 0) + uploadedFiles.length
+                    uploadCount: (claim.uploadCount || 0) + uploadedFiles.length,
+                    tasks: claim.tasks ? [...claim.tasks, newTask] : [newTask]
                   };
                 }
                 return claim;
               });
               localStorage.setItem('claims', JSON.stringify(updatedClaims));
+              
+              // Add task to dashboard tasks
+              const dashboardTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
+              const newDashboardTask = {
+                id: `TSK-${Math.floor(Math.random() * 10000)}`,
+                description: `Review ${uploadedFiles.length} new document(s) uploaded for claim ${claimId}`,
+                dueIn: "Today",
+                priority: "high",
+                type: "documentReview",
+                claimId: claimId
+              };
+              
+              localStorage.setItem('dashboardTasks', JSON.stringify([...dashboardTasks, newDashboardTask]));
               
               // Clear files after successful upload
               setUploadedFiles([]);

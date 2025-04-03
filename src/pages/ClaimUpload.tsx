@@ -11,6 +11,7 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 const ClaimUpload = () => {
   const { claimId, token } = useParams();
   const [isValidClaim, setIsValidClaim] = useState(true);
+  const [claimInfo, setClaimInfo] = useState<any>(null);
   
   const {
     uploadedFiles,
@@ -31,6 +32,8 @@ const ClaimUpload = () => {
     
     if (!foundClaim) {
       setIsValidClaim(false);
+    } else {
+      setClaimInfo(foundClaim);
     }
   }, [claimId, token]);
 
@@ -45,6 +48,12 @@ const ClaimUpload = () => {
           <CardTitle>Upload Documentation for Claim {claimId}</CardTitle>
           <CardDescription>
             Upload photos, videos, and other documents related to your insurance claim.
+            {claimInfo && (
+              <div className="mt-2 text-sm">
+                <p><strong>Policy:</strong> {claimInfo.policyNumber}</p>
+                <p><strong>Date of Incident:</strong> {claimInfo.incidentDate}</p>
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
