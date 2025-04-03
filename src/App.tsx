@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import Estimates from "./pages/Estimates";
 import Assistant from "./pages/Assistant";
 import ClaimDetails from "./pages/ClaimDetails";
 import NotFound from "./pages/NotFound";
+import ClaimUpload from "./pages/ClaimUpload";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +30,7 @@ const App = () => (
           <Route path="/analysis" element={<AppLayout><Analysis /></AppLayout>} />
           <Route path="/estimates" element={<AppLayout><Estimates /></AppLayout>} />
           <Route path="/assistant" element={<AppLayout><Assistant /></AppLayout>} />
+          <Route path="/claim-upload/:claimId/:token" element={<ClaimUpload />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

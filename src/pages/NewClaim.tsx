@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -160,6 +159,16 @@ const relationshipOptions = [
   "Other"
 ];
 
+const generateClaimId = () => {
+  const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `CLM-${randomNum}`;
+};
+
+const generateUploadLink = (claimId: string) => {
+  const randomString = Math.random().toString(36).substring(2, 10);
+  return `/claim-upload/${claimId}/${randomString}`;
+};
+
 const NewClaim = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -289,11 +298,35 @@ const NewClaim = () => {
   };
 
   const handleConfirmSubmit = () => {
+    const formData = form.getValues();
+    const currentDate = new Date().toISOString().split('T')[0];
+    const claimId = generateClaimId();
+    const uploadLink = generateUploadLink(claimId);
+    
+    const newClaim = {
+      id: claimId,
+      customer: selectedPolicy?.customerName || formData.customerName,
+      policyNumber: selectedPolicy?.id || formData.policyNumber,
+      status: "pending",
+      date: currentDate,
+      type: formData.causeOfAccident,
+      amount: "Pending",
+      uploadLink: uploadLink,
+      details: formData
+    };
+
+    const existingClaims = JSON.parse(localStorage.getItem('claims') || '[]');
+    
+    existingClaims.unshift(newClaim);
+    
+    localStorage.setItem('claims', JSON.stringify(existingClaims));
+
     toast({
       title: "Claim submitted successfully",
-      description: "Claim has been created with ID: CLM-4232",
+      description: `Claim ${claimId} has been created. Upload link: ${window.location.origin}${uploadLink}`,
     });
-    navigate("/claims");
+    
+    navigate("/claims", { state: { newClaim } });
   };
 
   if (showPolicyLookup) {

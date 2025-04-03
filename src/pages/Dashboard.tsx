@@ -1,4 +1,3 @@
-
 import { 
   Bell,
   Calendar, 
@@ -7,7 +6,8 @@ import {
   FileText, 
   Filter,
   Plus, 
-  Search
+  Search,
+  ExternalLink
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -30,6 +30,8 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 // Sample data for tasks
 const agentTasks = [
@@ -196,6 +198,79 @@ const recentClaims = [
 ];
 
 const Home = () => {
+  const [recentClaims, setRecentClaims] = useState([]);
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Get claims from localStorage
+    const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
+    
+    // If we have stored claims, use those first, then add the mock data
+    if (storedClaims.length > 0) {
+      // Combine with mock data but limit to around 5 total
+      const combinedClaims = [...storedClaims];
+      setRecentClaims(combinedClaims);
+    } else {
+      // Otherwise use the mock data
+      setRecentClaims([
+        {
+          id: "CLM-4231",
+          customer: "Emily Johnson",
+          policyNumber: "POL-78542",
+          status: "pending",
+          date: "2023-10-15",
+          type: "Collision",
+          amount: "$4,250.00",
+        },
+        {
+          id: "CLM-4230",
+          customer: "Michael Chen",
+          policyNumber: "POL-96325",
+          status: "under-review",
+          date: "2023-10-14",
+          type: "Comprehensive",
+          amount: "$1,850.75",
+        },
+        {
+          id: "CLM-4229",
+          customer: "Sarah Williams",
+          policyNumber: "POL-12589",
+          status: "completed",
+          date: "2023-10-12",
+          type: "Liability",
+          amount: "$3,500.00",
+        },
+        {
+          id: "CLM-4228",
+          customer: "David Rodriguez",
+          policyNumber: "POL-36985",
+          status: "under-review",
+          date: "2023-10-10",
+          type: "Collision",
+          amount: "$7,250.50",
+        },
+        {
+          id: "CLM-4227",
+          customer: "Linda Smith",
+          policyNumber: "POL-45632",
+          status: "pending",
+          date: "2023-10-09",
+          type: "Comprehensive",
+          amount: "$2,800.25",
+        },
+      ]);
+    }
+  }, []);
+
+  const copyUploadLink = (uploadLink, claimId) => {
+    const fullLink = `${window.location.origin}${uploadLink}`;
+    navigator.clipboard.writeText(fullLink);
+    toast({
+      title: "Link copied to clipboard",
+      description: `Upload link for claim ${claimId} has been copied.`,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -344,7 +419,7 @@ const Home = () => {
         </CardContent>
       </Card>
 
-      {/* Recent Claims Section - Kept from original */}
+      {/* Recent Claims Section - Updated to show claims from localStorage */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Claims</CardTitle>
@@ -387,6 +462,7 @@ const Home = () => {
                 <TableHead className="hidden lg:table-cell">Type</TableHead>
                 <TableHead className="hidden md:table-cell">Amount</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Upload Link</TableHead>
                 <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
@@ -407,6 +483,20 @@ const Home = () => {
                     <Badge className={statusStyles[claim.status as keyof typeof statusStyles].className}>
                       {statusStyles[claim.status as keyof typeof statusStyles].label}
                     </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {claim.uploadLink ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => copyUploadLink(claim.uploadLink, claim.id)}
+                      >
+                        <ExternalLink className="mr-1 h-3 w-3" />
+                        Copy Link
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Not available</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Link to={`/claims/${claim.id}`}>
