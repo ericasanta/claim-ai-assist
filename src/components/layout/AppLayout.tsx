@@ -2,6 +2,7 @@
 import { ReactNode } from "react";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
+import FloatingAssistant from "../assistant/FloatingAssistant";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <div className="container mx-auto p-4 md:p-6">{children}</div>
         </main>
       </div>
+      <FloatingAssistant />
     </div>
   );
 };
