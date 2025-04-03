@@ -66,7 +66,6 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, D
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
-// Sample policy and vehicle data
 const mockPolicies = [
   { 
     id: "POL-12345", 
@@ -154,14 +153,12 @@ const mockPolicies = [
   }
 ];
 
-// Mock damage photo examples
 const mockDamagePhotos = [
   "/lovable-uploads/ae1dd59a-67d6-4a61-ac33-f3b07c93d7d3.png",
   "/lovable-uploads/13093a36-1dc3-4c11-b2d2-eeb1f28d7501.png",
   "/lovable-uploads/6032c237-e9ea-4b79-8169-aa8647f17979.png"
 ];
 
-// Causes of loss options
 const causesOfLoss = [
   "Accident", 
   "Theft", 
@@ -174,7 +171,6 @@ const causesOfLoss = [
   "Other"
 ];
 
-// US States for dropdowns
 const usStates = [
   "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
   "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
@@ -185,7 +181,6 @@ const usStates = [
   "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
 ];
 
-// Relationship options
 const relationshipOptions = [
   "Self", "Spouse", "Child", "Parent", "Sibling", "Friend", "Other"
 ];
@@ -209,7 +204,6 @@ const NewClaim = () => {
   const [propertyDamage, setPropertyDamage] = useState<boolean | null>(null);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   
-  // Refs for scrolling to sections
   const sectionRefs = {
     policySearch: useRef<HTMLDivElement>(null),
     lossDetails: useRef<HTMLDivElement>(null),
@@ -229,17 +223,14 @@ const NewClaim = () => {
   
   const form = useForm({
     defaultValues: {
-      // Policy Info
       policyNumber: selectedPolicy?.id || "",
       customerName: selectedPolicy?.customerName || "",
       
-      // Loss Details
       lossDate: new Date(),
       causeOfLoss: "",
       lossDescription: "",
       lossLocation: "",
       
-      // Insured Vehicle
       vehicleMake: selectedPolicy?.vehicleMake || "",
       vehicleModel: selectedPolicy?.vehicleModel || "",
       vehicleYear: selectedPolicy?.vehicleYear || "",
@@ -248,7 +239,6 @@ const NewClaim = () => {
       licenseState: "California",
       damageDescription: "",
       
-      // Driver
       driverName: "",
       driverLicenseNumber: "",
       driverRelationship: "",
@@ -258,8 +248,6 @@ const NewClaim = () => {
       driverState: "",
       driverZip: "",
       driverPhone: "",
-      
-      // Add other fields as needed
     },
   });
 
@@ -276,7 +264,6 @@ const NewClaim = () => {
     const nameQuery = data.customerNameSearch.toLowerCase();
     const plateQuery = data.licensePlateSearch.toLowerCase();
     
-    // If all fields are empty, show all policies
     if (!policyQuery && !nameQuery && !plateQuery) {
       setFilteredPolicies(mockPolicies);
       return;
@@ -294,7 +281,6 @@ const NewClaim = () => {
   const selectPolicy = (policy: typeof mockPolicies[0]) => {
     setSelectedPolicy(policy);
     
-    // Set form values based on selected policy
     form.setValue("policyNumber", policy.id);
     form.setValue("customerName", policy.customerName);
     form.setValue("vehicleMake", policy.vehicleMake);
@@ -303,7 +289,6 @@ const NewClaim = () => {
     form.setValue("vin", policy.vin);
     form.setValue("licensePlate", policy.licensePlate);
     
-    // If there are drivers, set the first one as default
     if (policy.drivers && policy.drivers.length > 0) {
       form.setValue("driverName", policy.drivers[0].name);
       form.setValue("driverLicenseNumber", policy.drivers[0].licenseNumber);
@@ -312,8 +297,7 @@ const NewClaim = () => {
     
     setShowPolicyLookup(false);
     
-    // Add a slight delay to ensure the component has rendered
-    setTimeout(()=> {
+    setTimeout(() => {
       scrollToSection('lossDetails');
     }, 100);
   };
@@ -337,7 +321,6 @@ const NewClaim = () => {
       const selectedFiles = Array.from(e.target.files);
       setFiles((prev) => [...prev, ...selectedFiles]);
 
-      // Add mock preview images
       if (previewImages.length < 3) {
         const newPreviews = [...previewImages];
         for (let i = 0; i < Math.min(3 - previewImages.length, selectedFiles.length); i++) {
@@ -522,7 +505,6 @@ const NewClaim = () => {
           </div>
         </div>
         
-        {/* Navigation Menu */}
         {!useMobileView ? (
           <div className="hidden md:flex space-x-2">
             <Button 
@@ -579,7 +561,6 @@ const NewClaim = () => {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Loss Details Section */}
           <Card id="loss-details" ref={sectionRefs.lossDetails}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -702,7 +683,6 @@ const NewClaim = () => {
                 )}
               />
               
-              {/* Map would go here in a real implementation */}
               <div className="border rounded-md p-2">
                 <div className="aspect-video bg-muted flex items-center justify-center">
                   <MapPin className="h-12 w-12 text-muted-foreground opacity-50" />
@@ -712,7 +692,6 @@ const NewClaim = () => {
             </CardContent>
           </Card>
 
-          {/* Insured Vehicle Section */}
           <Card id="insured-vehicle" ref={sectionRefs.insuredVehicle}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -898,7 +877,6 @@ const NewClaim = () => {
             </CardContent>
           </Card>
 
-          {/* Driver Information Section */}
           <Card id="driver" ref={sectionRefs.driver}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -917,3 +895,384 @@ const NewClaim = () => {
                       type="button" 
                       variant={isVehicleOperated === true ? "default" : "outline"}
                       className="flex-1"
+                      onClick={() => setIsVehicleOperated(true)}
+                    >
+                      Yes
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={isVehicleOperated === false ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setIsVehicleOperated(false)}
+                    >
+                      No
+                    </Button>
+                  </div>
+                </div>
+
+                {isVehicleOperated && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Select Driver</Label>
+                      {selectedPolicy?.drivers && selectedPolicy.drivers.length > 0 ? (
+                        <div className="space-y-2">
+                          {selectedPolicy.drivers.map((driver, index) => (
+                            <div 
+                              key={index}
+                              className={`p-3 border rounded-md cursor-pointer ${selectedDriverIndex === index ? 'bg-accent border-primary' : ''}`}
+                              onClick={() => {
+                                setSelectedDriverIndex(index);
+                                form.setValue("driverName", driver.name);
+                                form.setValue("driverLicenseNumber", driver.licenseNumber);
+                                form.setValue("driverRelationship", driver.relationship);
+                              }}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium">{driver.name}</p>
+                                  <p className="text-sm text-muted-foreground">License: {driver.licenseNumber}</p>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {driver.relationship}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground">No drivers found on policy</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <FormField
+                        control={form.control}
+                        name="driverName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Driver Name</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="driverLicenseNumber"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Driver License Number</FormLabel>
+                            <FormControl>
+                              <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="driverRelationship"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Relationship to Insured</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select relationship" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {relationshipOptions.map((relationship) => (
+                                <SelectItem key={relationship} value={relationship}>{relationship}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="driverPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Driver Phone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="(555) 123-4567" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card id="other-vehicles" ref={sectionRefs.otherVehicles}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="mr-2 h-5 w-5" /> Other Vehicles
+              </CardTitle>
+              <CardDescription>
+                Information about other vehicles involved in the incident
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Were there other vehicles involved in the incident?</Label>
+                <div className="flex flex-wrap gap-4">
+                  <Button 
+                    type="button" 
+                    variant={numOtherVehicles > 0 ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setNumOtherVehicles(numOtherVehicles > 0 ? numOtherVehicles : 1)}
+                  >
+                    Yes
+                  </Button>
+                  <Button 
+                    type="button"
+                    variant={numOtherVehicles === 0 ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => {
+                      setNumOtherVehicles(0);
+                      setOtherVehicles([]);
+                    }}
+                  >
+                    No
+                  </Button>
+                </div>
+              </div>
+
+              {numOtherVehicles > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium">Other Vehicle Details</h3>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={addOtherVehicle}
+                    >
+                      <Plus className="mr-1 h-4 w-4" /> Add Vehicle
+                    </Button>
+                  </div>
+
+                  {otherVehicles.length === 0 ? (
+                    <div 
+                      className="border border-dashed rounded-md p-6 text-center cursor-pointer"
+                      onClick={addOtherVehicle}
+                    >
+                      <Car className="h-8 w-8 mx-auto text-muted-foreground" />
+                      <p className="mt-2 font-medium">Add Other Vehicle</p>
+                      <p className="text-sm text-muted-foreground">
+                        Click to add details about another vehicle involved
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {otherVehicles.map((vehicle, index) => (
+                        <div key={index} className="border rounded-md p-4 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-md font-medium">Vehicle {index + 1}</h4>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeOtherVehicle(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                              <Label htmlFor={`otherVehicleMake-${index}`}>Make/Model</Label>
+                              <Input 
+                                id={`otherVehicleMake-${index}`}
+                                placeholder="e.g. Honda Civic" 
+                                value={vehicle.make || ""}
+                                onChange={(e) => {
+                                  const newVehicles = [...otherVehicles];
+                                  newVehicles[index].make = e.target.value;
+                                  setOtherVehicles(newVehicles);
+                                }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor={`otherVehicleYear-${index}`}>Year</Label>
+                              <Input 
+                                id={`otherVehicleYear-${index}`}
+                                placeholder="e.g. 2020" 
+                                value={vehicle.year || ""}
+                                onChange={(e) => {
+                                  const newVehicles = [...otherVehicles];
+                                  newVehicles[index].year = e.target.value;
+                                  setOtherVehicles(newVehicles);
+                                }}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                              <Label htmlFor={`otherVehiclePlate-${index}`}>License Plate</Label>
+                              <Input 
+                                id={`otherVehiclePlate-${index}`}
+                                placeholder="e.g. ABC123" 
+                                value={vehicle.licensePlate || ""}
+                                onChange={(e) => {
+                                  const newVehicles = [...otherVehicles];
+                                  newVehicles[index].licensePlate = e.target.value;
+                                  setOtherVehicles(newVehicles);
+                                }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor={`otherVehicleState-${index}`}>State</Label>
+                              <Select
+                                onValueChange={(value) => {
+                                  const newVehicles = [...otherVehicles];
+                                  newVehicles[index].licenseState = value;
+                                  setOtherVehicles(newVehicles);
+                                }}
+                                value={vehicle.licenseState || ""}
+                              >
+                                <SelectTrigger id={`otherVehicleState-${index}`}>
+                                  <SelectValue placeholder="Select state" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {usStates.map((state) => (
+                                    <SelectItem key={state} value={state}>{state}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card id="involvement" ref={sectionRefs.involvement}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Clipboard className="mr-2 h-5 w-5" /> Other Involvement
+              </CardTitle>
+              <CardDescription>
+                Information about other parties involved in the incident
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Were there any witnesses to the incident?</Label>
+                  <div className="flex flex-wrap gap-4">
+                    <Button 
+                      type="button" 
+                      variant={witnessesPresent === true ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setWitnessesPresent(true)}
+                    >
+                      Yes
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={witnessesPresent === false ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setWitnessesPresent(false)}
+                    >
+                      No
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Were there any pedestrians injured?</Label>
+                  <div className="flex flex-wrap gap-4">
+                    <Button 
+                      type="button" 
+                      variant={pedestriansInjured === true ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setPedestriansInjured(true)}
+                    >
+                      Yes
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={pedestriansInjured === false ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setPedestriansInjured(false)}
+                    >
+                      No
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Was there property damage other than vehicles?</Label>
+                  <div className="flex flex-wrap gap-4">
+                    <Button 
+                      type="button" 
+                      variant={propertyDamage === true ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setPropertyDamage(true)}
+                    >
+                      Yes
+                    </Button>
+                    <Button 
+                      type="button"
+                      variant={propertyDamage === false ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() => setPropertyDamage(false)}
+                    >
+                      No
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button type="submit" size="lg">
+              Open Claim
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Claim Submission</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to submit this claim? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmClaim}>Submit Claim</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default NewClaim;
