@@ -25,47 +25,40 @@ export const useClaimsData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
+  // Initialize the data on first load
   useEffect(() => {
-    const fetchClaims = async () => {
-      setLoading(true);
+    console.log("useClaimsData effect running");
+    
+    const initializeData = () => {
       try {
-        console.log("Fetching claims data...");
+        setLoading(true);
+        console.log("Initializing claims data");
         
-        // First try to get claims from localStorage
-        const storedClaims = localStorage.getItem('claims');
+        // Force reset localStorage data for testing
+        localStorage.setItem('claims', JSON.stringify(mockClaims));
+        console.log("Set mock claims in localStorage:", mockClaims.length);
         
-        if (storedClaims && JSON.parse(storedClaims).length > 0) {
-          const parsedClaims = JSON.parse(storedClaims);
-          console.log("Found claims in localStorage:", parsedClaims.length, "claims");
-          setClaims(parsedClaims);
-        } else {
-          console.log("No claims in localStorage, initializing with mock data");
-          // Initialize with mock data if none exists
-          localStorage.setItem('claims', JSON.stringify(mockClaims));
-          setClaims(mockClaims);
-        }
+        // Set claims data in state
+        setClaims(mockClaims);
+        console.log("Set claims state with mock data");
         setError(null);
       } catch (error) {
-        console.error("Error loading claims:", error);
-        // Fallback to mock data if there's an error
-        localStorage.setItem('claims', JSON.stringify(mockClaims));
-        setClaims(mockClaims);
-        setError(error instanceof Error ? error : new Error("Unknown error loading claims"));
+        console.error("Error initializing claims:", error);
+        setError(error instanceof Error ? error : new Error("Unknown error initializing claims"));
       } finally {
         setLoading(false);
-        console.log("Claims data fetch complete");
+        console.log("Claims initialization complete");
       }
     };
-
-    fetchClaims();
     
-    // Add a cleanup check to prevent memory leaks
+    initializeData();
+    
     return () => {
-      console.log("useClaimsData hook cleanup");
+      console.log("useClaimsData cleanup");
     };
   }, []);
 
-  // Add a method to get a specific claim by ID
+  // Get a specific claim by ID
   const getClaimById = (id: string) => {
     console.log("Getting claim by ID:", id, "from", claims.length, "claims");
     console.log("Available claim IDs:", claims.map(c => c.id));
@@ -74,7 +67,7 @@ export const useClaimsData = () => {
     return foundClaim || null;
   };
 
-  // Add a method to update claims in localStorage and state
+  // Update claims in localStorage and state
   const updateClaims = (newClaims: Claim[]) => {
     try {
       console.log("Updating claims:", newClaims.length, "claims");

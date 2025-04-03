@@ -1,11 +1,8 @@
 
-import { 
-  Search, 
-  Filter,
-  ExternalLink
-} from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Table, 
   TableHeader, 
@@ -14,17 +11,6 @@ import {
   TableBody, 
   TableCell 
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 
 // Status badges with appropriate colors
 const statusStyles = {
@@ -51,98 +37,53 @@ interface RecentClaimsSectionProps {
 }
 
 const RecentClaimsSection = ({ claims, copyUploadLink }: RecentClaimsSectionProps) => {
+  console.log("RecentClaimsSection rendering with claims:", claims?.length || 0);
+  
+  if (!claims || claims.length === 0) {
+    return (
+      <div className="bg-white p-4 rounded border text-center">
+        <p className="text-gray-600">No claims available</p>
+      </div>
+    );
+  }
+  
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Claims</CardTitle>
-        <div className="flex flex-col gap-4 pt-4 md:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search claims..."
-              className="w-full pl-8"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
-            <Select defaultValue="all">
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="under-review">Under Review</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Claim ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead className="hidden sm:table-cell">Policy Number</TableHead>
-              <TableHead className="hidden md:table-cell">Date</TableHead>
-              <TableHead className="hidden lg:table-cell">Type</TableHead>
-              <TableHead className="hidden md:table-cell">Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Upload Link</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+    <div className="bg-white rounded border overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Claim ID</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Action</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {claims.map((claim) => (
+            <TableRow key={claim.id}>
+              <TableCell className="font-medium">
+                <Link to={`/claims/${claim.id}`} className="text-blue-600 hover:underline">
+                  {claim.id}
+                </Link>
+              </TableCell>
+              <TableCell>{claim.customer}</TableCell>
+              <TableCell>
+                <Badge className={statusStyles[claim.status.toLowerCase() as keyof typeof statusStyles]?.className || "bg-gray-500"}>
+                  {statusStyles[claim.status.toLowerCase() as keyof typeof statusStyles]?.label || claim.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Link to={`/claims/${claim.id}`}>
+                  <Button variant="outline" size="sm">
+                    View
+                  </Button>
+                </Link>
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {claims.map((claim) => (
-              <TableRow key={claim.id}>
-                <TableCell className="font-medium">
-                  <Link to={`/claims/${claim.id}`} className="text-blue-600 hover:underline">
-                    {claim.id}
-                  </Link>
-                </TableCell>
-                <TableCell>{claim.customer}</TableCell>
-                <TableCell className="hidden sm:table-cell">{claim.policyNumber}</TableCell>
-                <TableCell className="hidden md:table-cell">{claim.date}</TableCell>
-                <TableCell className="hidden lg:table-cell">{claim.type}</TableCell>
-                <TableCell className="hidden md:table-cell">{claim.amount}</TableCell>
-                <TableCell>
-                  <Badge className={statusStyles[claim.status.toLowerCase() as keyof typeof statusStyles]?.className || "bg-gray-500"}>
-                    {statusStyles[claim.status.toLowerCase() as keyof typeof statusStyles]?.label || claim.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {claim.uploadLink ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => copyUploadLink(claim.uploadLink!, claim.id)}
-                    >
-                      <ExternalLink className="mr-1 h-3 w-3" />
-                      Copy Link
-                    </Button>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Not available</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Link to={`/claims/${claim.id}`}>
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

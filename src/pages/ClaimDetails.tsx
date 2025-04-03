@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useClaimsData } from "@/hooks/useClaimsData";
+import { useClaimsData, Claim } from "@/hooks/useClaimsData";
 import ClaimSummary from "@/components/claim-details/ClaimSummary";
 import DocumentsSection from "@/components/claim-details/DocumentsSection";
 import ActivityFeed from "@/components/claim-details/ActivityFeed";
@@ -15,8 +15,11 @@ const ClaimDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { claims, loading, getClaimById, updateClaims } = useClaimsData();
-  const [claim, setClaim] = useState<any>(null);
+  const [claim, setClaim] = useState<Claim | null>(null);
   const [notFound, setNotFound] = useState(false);
+
+  console.log("ClaimDetails rendering, claimId:", claimId);
+  console.log("Claims data available:", claims?.length || 0);
 
   useEffect(() => {
     console.log("ClaimDetails component mounted, claimId:", claimId);
