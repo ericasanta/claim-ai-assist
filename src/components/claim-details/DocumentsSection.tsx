@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Calendar, FileX, Link2, Sparkles, AlertCircle } from "lucide-react";
@@ -8,12 +8,25 @@ import { useToast } from "@/hooks/use-toast";
 
 interface DocumentsSectionProps {
   claim: any;
-  onAIAnalysis: () => void;
   onCopyUploadLink: () => void;
 }
 
-const DocumentsSection = ({ claim, onAIAnalysis, onCopyUploadLink }: DocumentsSectionProps) => {
+const DocumentsSection = ({ claim, onCopyUploadLink }: DocumentsSectionProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleAIAnalysis = () => {
+    // Clear any existing damage assessments to prevent data mixing
+    localStorage.removeItem('damageAssessments');
+    localStorage.removeItem('selectedDamage');
+    
+    // Navigate to the analysis page
+    if (claim?.id) {
+      navigate(`/analysis/${claim.id}`);
+    } else {
+      navigate('/analysis');
+    }
+  };
 
   if (!claim) return null;
 
@@ -29,7 +42,7 @@ const DocumentsSection = ({ claim, onAIAnalysis, onCopyUploadLink }: DocumentsSe
         <div className="flex gap-2">
           {claim?.hasUploads && (
             <Button
-              onClick={onAIAnalysis}
+              onClick={handleAIAnalysis}
               variant="outline"
             >
               <Sparkles className="mr-2 h-4 w-4" />
@@ -82,13 +95,22 @@ const DocumentsSection = ({ claim, onAIAnalysis, onCopyUploadLink }: DocumentsSe
                     <p className="text-sm text-muted-foreground">
                       {claim.aiDamageCount || 3} damage areas identified, estimated cost: {claim.aiEstimate || '$2,450'}
                     </p>
-                    <Button 
-                      variant="link" 
-                      className="p-0 h-auto text-sm"
-                      onClick={onAIAnalysis}
-                    >
-                      View Analysis
-                    </Button>
+                    <div className="flex gap-2 mt-1">
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-sm"
+                        onClick={handleAIAnalysis}
+                      >
+                        View Analysis
+                      </Button>
+                      <Button 
+                        variant="link" 
+                        className="p-0 h-auto text-sm"
+                        onClick={() => navigate(`/estimates/${claim.id}`)}
+                      >
+                        View Estimate
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -104,7 +126,7 @@ const DocumentsSection = ({ claim, onAIAnalysis, onCopyUploadLink }: DocumentsSe
                     <Button 
                       variant="link" 
                       className="p-0 h-auto text-sm"
-                      onClick={onAIAnalysis}
+                      onClick={handleAIAnalysis}
                     >
                       Start Analysis
                     </Button>

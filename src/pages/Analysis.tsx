@@ -290,6 +290,8 @@ const Analysis = () => {
   };
 
   const proceedToEstimates = () => {
+    localStorage.setItem('damageAssessments', JSON.stringify(damageAssessments));
+    
     const totalCost = damageAssessments.reduce((sum, item) => sum + item.estimatedCost, 0);
     
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');

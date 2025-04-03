@@ -27,7 +27,9 @@ function App() {
           <Route path="/claims/:claimId/upload/:token" element={<ClaimUpload />} />
           <Route path="/upload-success" element={<UploadSuccess />} />
           <Route path="/analysis" element={<Analysis />} />
+          <Route path="/analysis/:claimId" element={<Analysis />} />
           <Route path="/estimates" element={<Estimates />} />
+          <Route path="/estimates/:claimId" element={<Estimates />} />
           <Route path="/assistant" element={<Assistant />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

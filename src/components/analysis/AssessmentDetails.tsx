@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Check, Circle, MoveHorizontal, MoveVertical } from "lucide-react";
+import { Check, Circle, MoveHorizontal, MoveVertical, ArrowRight } from "lucide-react";
 
 interface AssessmentDetailsProps {
   selectedDamage: number | null;
@@ -72,6 +72,25 @@ const AssessmentDetails = ({
               <SelectItem value="low">Low</SelectItem>
               <SelectItem value="medium">Medium</SelectItem>
               <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <label className="text-sm font-medium">Repair Recommendation</label>
+          <Select
+            value={editingAssessment.recommendation || "repair"}
+            onValueChange={(value) => 
+              setEditingAssessment({ ...editingAssessment, recommendation: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select recommendation" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="repair">Repair</SelectItem>
+              <SelectItem value="replace">Replace</SelectItem>
+              <SelectItem value="touchup">Touch-up</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -192,6 +211,20 @@ const AssessmentDetails = ({
         </div>
         
         <div>
+          <h4 className="text-sm font-medium">Recommendation:</h4>
+          <Badge 
+            className={`mt-1 ${
+              assessment.recommendation === 'replace' ? 'bg-red-100 text-red-800 border-red-200' :
+              assessment.recommendation === 'repair' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+              'bg-green-100 text-green-800 border-green-200'
+            }`}
+          >
+            {assessment.recommendation === 'replace' ? 'Replace' : 
+             assessment.recommendation === 'repair' ? 'Repair' : 'Touch-up'}
+          </Badge>
+        </div>
+        
+        <div>
           <h4 className="text-sm font-medium">Notes:</h4>
           <p className="text-sm text-muted-foreground mt-1">
             {assessment.notes || "No notes provided."}
@@ -231,6 +264,23 @@ const AssessmentDetails = ({
             </div>
           </div>
         </div>
+        
+        <Button 
+          size="sm" 
+          variant="outline" 
+          className="w-full mt-2"
+          onClick={() => {
+            const assessmentWithRecommendation = {
+              ...assessment,
+              recommendation: assessment.recommendation || (assessment.severity === 'high' ? 'replace' : assessment.severity === 'medium' ? 'repair' : 'touchup')
+            };
+            localStorage.setItem('selectedDamage', JSON.stringify(assessmentWithRecommendation));
+            window.location.href = '/estimates';
+          }}
+        >
+          Create Estimate
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     );
   }
