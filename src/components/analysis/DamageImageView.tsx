@@ -2,6 +2,8 @@
 import { useRef } from "react";
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import DamagePopover from "./DamagePopover";
 
 interface DamageImageViewProps {
   imageUrl: string;
@@ -15,6 +17,7 @@ interface DamageImageViewProps {
   handleMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseUp: () => void;
+  handleDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
 const DamageImageView = ({
@@ -29,6 +32,7 @@ const DamageImageView = ({
   handleMouseDown,
   handleMouseMove,
   handleMouseUp,
+  handleDoubleClick,
 }: DamageImageViewProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -47,6 +51,7 @@ const DamageImageView = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onDoubleClick={handleDoubleClick}
       >
         <img
           ref={imageRef}
@@ -61,7 +66,7 @@ const DamageImageView = ({
             key={assessment.id}
             className={cn(
               "ai-bounding-box",
-              `ai-bounding-box-${assessment.severity}`,
+              assessment.isManual ? "ai-bounding-box-manual" : `ai-bounding-box-${assessment.severity}`,
               selectedDamage === assessment.id && "ai-bounding-box-selected"
             )}
             style={{

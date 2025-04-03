@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 interface DamageTableProps {
   damages: any[];
@@ -33,9 +34,22 @@ const DamageTable = ({ damages, selectedDamage, setSelectedDamage }: DamageTable
               className={selectedDamage === item.id ? "bg-blue-50" : ""}
               onClick={() => setSelectedDamage(item.id)}
             >
-              <TableCell>{item.type}</TableCell>
-              <TableCell className="text-right">{item.partConfidence.toFixed(2)}</TableCell>
-              <TableCell className="text-right">{item.damageConfidence.toFixed(2)}</TableCell>
+              <TableCell>
+                <div className="flex items-center">
+                  {item.type}
+                  {item.isManual && (
+                    <Badge variant="outline" className="ml-2 text-xs bg-purple-50 text-purple-700 border-purple-200">
+                      Manual
+                    </Badge>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="text-right">
+                {item.isManual ? "Manual" : item.partConfidence.toFixed(2)}
+              </TableCell>
+              <TableCell className="text-right">
+                {item.isManual ? "Manual" : item.damageConfidence.toFixed(2)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

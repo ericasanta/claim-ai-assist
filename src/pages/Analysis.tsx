@@ -13,6 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ArrowRight, Plus, Trash2 } from "lucide-react";
 
@@ -24,6 +25,7 @@ import VehicleInfo from "@/components/analysis/VehicleInfo";
 import DamageTable from "@/components/analysis/DamageTable";
 import AnalysisSummary from "@/components/analysis/AnalysisSummary";
 import AIConfidenceCard from "@/components/analysis/AIConfidenceCard";
+import DamagePopover from "@/components/analysis/DamagePopover";
 
 const damageImages = [
   {
@@ -44,6 +46,7 @@ const initialDamageAssessments = [
     estimatedCost: 950,
     partConfidence: 0.98,
     damageConfidence: 0.87,
+    isManual: false,
   },
   {
     id: 2,
@@ -55,6 +58,7 @@ const initialDamageAssessments = [
     estimatedCost: 450,
     partConfidence: 0.95,
     damageConfidence: 0.82,
+    isManual: false,
   },
   {
     id: 3,
@@ -66,6 +70,7 @@ const initialDamageAssessments = [
     estimatedCost: 350,
     partConfidence: 0.92,
     damageConfidence: 0.68,
+    isManual: false,
   },
   {
     id: 4,
@@ -77,6 +82,7 @@ const initialDamageAssessments = [
     estimatedCost: 250,
     partConfidence: 0.97,
     damageConfidence: 0.58,
+    isManual: false,
   },
 ];
 
@@ -93,6 +99,7 @@ const severityLegend = [
   { label: "Low Severity", class: "ai-bounding-box-low" },
   { label: "Medium Severity", class: "ai-bounding-box-medium" },
   { label: "High Severity", class: "ai-bounding-box-high" },
+  { label: "Manual Entry", class: "ai-bounding-box-manual" },
 ];
 
 const Analysis = () => {
@@ -112,6 +119,10 @@ const Analysis = () => {
   const [editingVehicleInfo, setEditingVehicleInfo] = useState(false);
   const [vehicleData, setVehicleData] = useState(vehicleInfo);
   const imageRef = useRef<HTMLImageElement>(null);
+  
+  // New states for manual entry
+  const [showPopover, setShowPopover] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
 
   const currentImageAssessments = damageAssessments.filter(
     (assessment) => assessment.imageId === activeImageId
@@ -201,6 +212,7 @@ const Analysis = () => {
           estimatedCost: 0,
           partConfidence: 0.90,
           damageConfidence: 0.75,
+          isManual: false,
         };
         
         setDamageAssessments((prev) => [...prev, newAssessment]);
@@ -217,6 +229,50 @@ const Analysis = () => {
       setIsDrawing(false);
       setIsAddingNew(false);
     }
+  };
+
+  // Handle double-click to add manual damage
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isAddingNew || isDrawing) return;
+    
+    if (!imageRef.current) return;
+    
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    setPopoverPosition({ x, y });
+    setShowPopover(true);
+  };
+
+  // Save manually added damage
+  const saveManualDamage = (damageData: any) => {
+    const newManualDamage = {
+      id: Date.now(),
+      imageId: activeImageId,
+      type: damageData.type,
+      severity: damageData.severity,
+      position: { 
+        x: Math.max(0, popoverPosition.x - 5),
+        y: Math.max(0, popoverPosition.y - 5),
+        width: 10,
+        height: 10
+      },
+      notes: damageData.notes,
+      estimatedCost: damageData.estimatedCost,
+      partConfidence: 1,
+      damageConfidence: 1,
+      isManual: true,
+    };
+    
+    setDamageAssessments((prev) => [...prev, newManualDamage]);
+    setSelectedDamage(newManualDamage.id);
+    setShowPopover(false);
+    
+    toast({
+      title: "Manual Damage Added",
+      description: `${damageData.type} has been added to the analysis.`,
+    });
   };
 
   const handleFinishAnalysis = () => {
@@ -329,23 +385,43 @@ const Analysis = () => {
                 </div>
               </div>
               <CardDescription>
-                AI-detected damage with severity indicators
+                AI-detected damage with severity indicators (double-click to add manual entries)
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DamageImageView 
-                imageUrl={damageImages.find((img) => img.id === activeImageId)?.url || ""}
-                imageAlt="Vehicle Damage"
-                isAddingNew={isAddingNew}
-                isDrawing={isDrawing}
-                currentImageAssessments={currentImageAssessments}
-                selectedDamage={selectedDamage}
-                newBoxPosition={newBoxPosition}
-                handleBoxClick={handleBoxClick}
-                handleMouseDown={handleMouseDown}
-                handleMouseMove={handleMouseMove}
-                handleMouseUp={handleMouseUp}
-              />
+              <Popover open={showPopover} onOpenChange={setShowPopover}>
+                <PopoverTrigger className="hidden">Open</PopoverTrigger>
+                <div className="relative">
+                  <DamageImageView 
+                    imageUrl={damageImages.find((img) => img.id === activeImageId)?.url || ""}
+                    imageAlt="Vehicle Damage"
+                    isAddingNew={isAddingNew}
+                    isDrawing={isDrawing}
+                    currentImageAssessments={currentImageAssessments}
+                    selectedDamage={selectedDamage}
+                    newBoxPosition={newBoxPosition}
+                    handleBoxClick={handleBoxClick}
+                    handleMouseDown={handleMouseDown}
+                    handleMouseMove={handleMouseMove}
+                    handleMouseUp={handleMouseUp}
+                    handleDoubleClick={handleDoubleClick}
+                  />
+                  
+                  <PopoverContent 
+                    className="w-auto p-0" 
+                    style={{ 
+                      position: 'absolute',
+                      left: `${popoverPosition.x}%`,
+                      top: `${popoverPosition.y}%`,
+                    }}
+                  >
+                    <DamagePopover 
+                      onSave={saveManualDamage}
+                      onCancel={() => setShowPopover(false)}
+                    />
+                  </PopoverContent>
+                </div>
+              </Popover>
               
               <SeverityLegend items={severityLegend} />
             </CardContent>
