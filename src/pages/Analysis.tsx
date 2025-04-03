@@ -403,6 +403,7 @@ const Analysis = () => {
                     handleMouseMove={handleMouseMove}
                     handleMouseUp={handleMouseUp}
                     handleDoubleClick={handleDoubleClick}
+                    onSaveManualDamage={saveManualDamage}
                   />
                   
                   <PopoverContent 

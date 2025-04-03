@@ -18,6 +18,7 @@ interface DamageImageViewProps {
   handleMouseMove: (e: React.MouseEvent<HTMLDivElement>) => void;
   handleMouseUp: () => void;
   handleDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onSaveManualDamage?: (damageData: any) => void;
 }
 
 const DamageImageView = ({
@@ -33,6 +34,7 @@ const DamageImageView = ({
   handleMouseMove,
   handleMouseUp,
   handleDoubleClick,
+  onSaveManualDamage,
 }: DamageImageViewProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -74,16 +76,8 @@ const DamageImageView = ({
           <PopoverContent className="p-0 w-auto">
             <DamagePopover 
               onSave={(damageData) => {
-                if (handleDoubleClick) {
-                  // Create a fake event with coordinates at a default position
-                  const fakeEvent = {
-                    clientX: 100, // Default X position
-                    clientY: 100, // Default Y position
-                    preventDefault: () => {},
-                    stopPropagation: () => {},
-                  } as React.MouseEvent<HTMLDivElement>;
-                  
-                  handleDoubleClick(fakeEvent);
+                if (onSaveManualDamage) {
+                  onSaveManualDamage(damageData);
                 }
               }}
               onCancel={() => {}}
