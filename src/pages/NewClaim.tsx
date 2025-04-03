@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -66,7 +65,6 @@ import {
   X 
 } from "lucide-react";
 
-// Mock data for policy lookup
 const mockPolicies = [
   {
     id: "POL-78542",
@@ -133,7 +131,6 @@ const mockPolicies = [
   }
 ];
 
-// Causes of loss options
 const causesOfLoss = [
   "Collision with another vehicle",
   "Collision with object",
@@ -147,7 +144,6 @@ const causesOfLoss = [
   "Other"
 ];
 
-// Relationship options
 const relationshipOptions = [
   "Policyholder",
   "Spouse",
@@ -169,10 +165,9 @@ const NewClaim = () => {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [useMobileView, setUseMobileView] = useState(window.innerWidth < 768);
 
-  // Refs for scrolling to sections
   const sectionRefs = {
     policySearch: useRef<HTMLDivElement>(null),
-    accidentDetails: useRef<HTMLDivElement>(null), // Changed from lossDetails
+    accidentDetails: useRef<HTMLDivElement>(null),
     insuredVehicle: useRef<HTMLDivElement>(null),
     driver: useRef<HTMLDivElement>(null),
     otherVehicles: useRef<HTMLDivElement>(null),
@@ -186,33 +181,24 @@ const NewClaim = () => {
       setActiveSection(sectionId);
     }
   };
-  
+
   const form = useForm({
     defaultValues: {
-      // Policy Info
       policyNumber: selectedPolicy?.id || "",
       customerName: selectedPolicy?.customerName || "",
-      
-      // Accident Details (changed from Loss Details)
-      accidentDate: new Date(), // Changed from lossDate
-      causeOfAccident: "", // Changed from causeOfLoss
-      accidentDescription: "", // Changed from lossDescription
-      accidentLocation: "", // Changed from lossLocation
-      
-      // Insured Vehicle
+      accidentDate: new Date(),
+      causeOfAccident: "",
+      accidentDescription: "",
+      accidentLocation: "",
       vehicleMake: selectedPolicy?.vehicleMake || "",
       vehicleModel: selectedPolicy?.vehicleModel || "",
       vehicleYear: selectedPolicy?.vehicleYear || "",
       vin: selectedPolicy?.vin || "",
       licensePlate: selectedPolicy?.licensePlate || "",
       damageDescription: "",
-      
-      // Driver
       driverName: selectedPolicy?.drivers?.[0]?.name || "",
       driverLicenseNumber: selectedPolicy?.drivers?.[0]?.licenseNumber || "",
       driverRelationship: selectedPolicy?.drivers?.[0]?.relationship || "",
-      
-      // Other Vehicles
       otherVehicleInvolved: false,
       otherVehicleMake: "",
       otherVehicleModel: "",
@@ -222,8 +208,6 @@ const NewClaim = () => {
       otherDriverLicenseNumber: "",
       otherDriverInsurance: "",
       otherDriverPolicyNumber: "",
-      
-      // Involvement
       policeReport: false,
       policeReportNumber: "",
       injuries: false,
@@ -233,16 +217,13 @@ const NewClaim = () => {
     },
   });
 
-  // Form for policy lookup
   const policyLookupForm = useForm({
     defaultValues: {
       searchTerm: "",
     },
   });
 
-  // Handle policy search
   const handlePolicySearch = (data: { searchTerm: string }) => {
-    // In a real app, this would be an API call
     const results = mockPolicies.filter(policy => 
       policy.id.toLowerCase().includes(data.searchTerm.toLowerCase()) ||
       policy.customerName.toLowerCase().includes(data.searchTerm.toLowerCase()) ||
@@ -263,7 +244,6 @@ const NewClaim = () => {
   const selectPolicy = (policy: typeof mockPolicies[0]) => {
     setSelectedPolicy(policy);
     
-    // Set form values based on selected policy
     form.setValue("policyNumber", policy.id);
     form.setValue("customerName", policy.customerName);
     form.setValue("vehicleMake", policy.vehicleMake);
@@ -272,7 +252,6 @@ const NewClaim = () => {
     form.setValue("vin", policy.vin);
     form.setValue("licensePlate", policy.licensePlate);
     
-    // If there are drivers, set the first one as default
     if (policy.drivers && policy.drivers.length > 0) {
       form.setValue("driverName", policy.drivers[0].name);
       form.setValue("driverLicenseNumber", policy.drivers[0].licenseNumber);
@@ -281,9 +260,8 @@ const NewClaim = () => {
     
     setShowPolicyLookup(false);
     
-    // Add a slight delay to ensure the component has rendered
-    setTimeout(()=> {
-      scrollToSection('accidentDetails'); // Changed from lossDetails
+    setTimeout(() => {
+      scrollToSection('accidentDetails');
     }, 100);
   };
 
@@ -312,7 +290,6 @@ const NewClaim = () => {
     navigate("/claims");
   };
 
-  // Render policy lookup view
   if (showPolicyLookup) {
     return (
       <div className="space-y-6">
@@ -405,15 +382,14 @@ const NewClaim = () => {
           </div>
         </div>
         
-        {/* Navigation Menu */}
         {!useMobileView ? (
           <div className="hidden md:flex space-x-2">
             <Button 
-              variant={activeSection === 'accidentDetails' ? 'default' : 'outline'} // Changed from lossDetails
+              variant={activeSection === 'accidentDetails' ? 'default' : 'outline'} 
               size="sm" 
-              onClick={() => scrollToSection('accidentDetails')} // Changed from lossDetails
+              onClick={() => scrollToSection('accidentDetails')}
             >
-              <Info className="mr-1 h-4 w-4" /> Accident Details {/* Changed from Loss Details */}
+              <Info className="mr-1 h-4 w-4" /> Accident Details
             </Button>
             <Button 
               variant={activeSection === 'insuredVehicle' ? 'default' : 'outline'} 
@@ -450,7 +426,7 @@ const NewClaim = () => {
               <SelectValue placeholder="Navigate to section" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="accidentDetails">Accident Details</SelectItem> {/* Changed from lossDetails */}
+              <SelectItem value="accidentDetails">Accident Details</SelectItem>
               <SelectItem value="insuredVehicle">Vehicle</SelectItem>
               <SelectItem value="driver">Driver</SelectItem>
               <SelectItem value="otherVehicles">Other Vehicles</SelectItem>
@@ -462,25 +438,24 @@ const NewClaim = () => {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          {/* Accident Details Section (changed from Loss Details) */}
-          <Card id="accident-details" ref={sectionRefs.accidentDetails}> {/* Changed from loss-details and lossDetails */}
+          <Card id="accident-details" ref={sectionRefs.accidentDetails}>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <Info className="mr-2 h-5 w-5" /> Accident Details {/* Changed from Loss Details */}
+                <Info className="mr-2 h-5 w-5" /> Accident Details
               </CardTitle>
               <CardDescription>
-                Provide details about when and how the accident occurred {/* Changed text */}
+                Provide details about when and how the accident occurred
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="accidentDate" // Changed from lossDate
-                  rules={{ required: "Date of Accident is required" }} // Changed text
+                  name="accidentDate"
+                  rules={{ required: "Date of Accident is required" }}
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Date of Accident *</FormLabel> {/* Changed from Date of Loss */}
+                      <FormLabel>Date of Accident *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -520,18 +495,18 @@ const NewClaim = () => {
 
                 <FormField
                   control={form.control}
-                  name="causeOfAccident" // Changed from causeOfLoss
-                  rules={{ required: "Cause of Accident is required" }} // Changed text
+                  name="causeOfAccident"
+                  rules={{ required: "Cause of Accident is required" }}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cause of Accident *</FormLabel> {/* Changed from Cause of Loss */}
+                      <FormLabel>Cause of Accident *</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select cause of accident" /> {/* Changed text */}
+                            <SelectValue placeholder="Select cause of accident" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -548,16 +523,16 @@ const NewClaim = () => {
 
               <FormField
                 control={form.control}
-                name="accidentLocation" // Changed from lossLocation
-                rules={{ required: "Accident Location is required" }} // Changed text
+                name="accidentLocation"
+                rules={{ required: "Accident Location is required" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Accident Location *</FormLabel> {/* Changed from Loss Location */}
+                    <FormLabel>Accident Location *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Street address where the accident occurred" {...field} /> {/* Changed text */}
+                      <Input placeholder="Street address where the accident occurred" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Enter the address where the accident occurred {/* Changed text */}
+                      Enter the address where the accident occurred
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -566,7 +541,7 @@ const NewClaim = () => {
 
               <FormField
                 control={form.control}
-                name="accidentDescription" // Changed from lossDescription
+                name="accidentDescription"
                 rules={{ required: "Description is required" }}
                 render={({ field }) => (
                   <FormItem>
@@ -586,7 +561,6 @@ const NewClaim = () => {
                 )}
               />
               
-              {/* Map would go here in a real implementation */}
               <div className="border rounded-md p-4 bg-muted/30 flex flex-col items-center justify-center h-[200px]">
                 <MapPin className="h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground">Map location would be displayed here</p>
@@ -598,7 +572,6 @@ const NewClaim = () => {
             </CardContent>
           </Card>
 
-          {/* Insured Vehicle Section */}
           <Card id="insured-vehicle" ref={sectionRefs.insuredVehicle}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -749,7 +722,6 @@ const NewClaim = () => {
             </CardContent>
           </Card>
 
-          {/* Driver Section */}
           <Card id="driver" ref={sectionRefs.driver}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -820,7 +792,6 @@ const NewClaim = () => {
             </CardContent>
           </Card>
 
-          {/* Other Vehicles Section */}
           <Card id="other-vehicles" ref={sectionRefs.otherVehicles}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -980,7 +951,6 @@ const NewClaim = () => {
             </CardContent>
           </Card>
 
-          {/* Involvement Section */}
           <Card id="involvement" ref={sectionRefs.involvement}>
             <CardHeader>
               <CardTitle className="flex items-center">
@@ -1137,7 +1107,6 @@ const NewClaim = () => {
         </form>
       </Form>
 
-      {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
