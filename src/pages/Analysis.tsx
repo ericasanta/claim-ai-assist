@@ -24,6 +24,7 @@ import DamageTable from "@/components/analysis/DamageTable";
 import AnalysisSummary from "@/components/analysis/AnalysisSummary";
 import AIConfidenceCard from "@/components/analysis/AIConfidenceCard";
 import DamagePopover from "@/components/analysis/DamagePopover";
+import FraudDetectionCard from "@/components/analysis/FraudDetectionCard";
 
 const damageImages = [
   {
@@ -458,6 +459,8 @@ const Analysis = () => {
           </Card>
 
           <AIConfidenceCard currentImageAssessments={currentImageAssessments} />
+          
+          <FraudDetectionCard damageAssessments={damageAssessments} />
         </div>
 
         <div className="space-y-4">

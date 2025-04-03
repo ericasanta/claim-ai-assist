@@ -29,8 +29,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeftIcon, ArrowRight, Check, FileText, Sparkles, Plus, ThumbsUp, Trash2 } from "lucide-react";
+import { 
+  AlertTriangle, 
+  ArrowLeftIcon, 
+  ArrowRight, 
+  Check, 
+  CheckCircle,
+  FileText, 
+  Info, 
+  Plus, 
+  ShieldAlert, 
+  ShieldCheck, 
+  Sparkles, 
+  ThumbsUp, 
+  Trash2 
+} from "lucide-react";
 
 const additionalRecommendedItems = [
   {
@@ -76,6 +91,11 @@ const Estimates = () => {
   const [approvalNotes, setApprovalNotes] = useState("");
   const [showAssistedEstimateButton, setShowAssistedEstimateButton] = useState(true);
 
+  // Add fraud detection state
+  const [fraudScore, setFraudScore] = useState(0);
+  const [fraudStatus, setFraudStatus] = useState<'passed' | 'caution' | 'flagged'>('passed');
+  const [fraudReasons, setFraudReasons] = useState<string[]>([]);
+  
   useEffect(() => {
     const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
     
@@ -178,6 +198,66 @@ const Estimates = () => {
       
       setEstimateItems(initialItems);
     }
+    
+    // Add fraud detection calculation
+    const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
+    
+    // Calculate mock fraud score
+    let score = 25; // Base score
+    const reasons: string[] = [];
+    
+    if (storedAssessments.length > 0) {
+      // Check for high cost items
+      const totalCost = storedAssessments.reduce((sum: number, item: any) => sum + item.estimatedCost, 0);
+      const averageCost = totalCost / storedAssessments.length;
+      
+      if (averageCost > 600) {
+        score += 30;
+        reasons.push("Multiple high-cost items exceeding typical values");
+      }
+      else if (averageCost > 400) {
+        score += 15;
+        reasons.push("Some repair costs slightly above average");
+      }
+      
+      // Check for unusual number of high severity damages
+      const highSeverityCount = storedAssessments.filter((d: any) => d.severity === "high").length;
+      if (highSeverityCount > 2) {
+        score += 25;
+        reasons.push("Unusually high number of severe damages detected");
+      }
+      else if (highSeverityCount > 0) {
+        score += 10;
+        reasons.push("Presence of high severity damage");
+      }
+      
+      // Check for manual entries (could indicate manipulation)
+      const manualEntries = storedAssessments.filter((d: any) => d.isManual).length;
+      if (manualEntries > 1) {
+        score += 20;
+        reasons.push("Multiple manual adjustments to damage assessment");
+      } else if (manualEntries > 0) {
+        score += 10;
+        reasons.push("Manual adjustment detected in damage assessment");
+      }
+      
+      // Add random factor (5-15) to simulate varying detection logic
+      score += 5 + Math.floor(Math.random() * 10);
+    } else {
+      // Default reasons if no assessments
+      reasons.push("Limited data available for fraud detection");
+      reasons.push("Standard verification recommended");
+    }
+    
+    // Cap at 100
+    score = Math.min(score, 100);
+    setFraudScore(score);
+    setFraudReasons(reasons);
+    
+    // Set fraud status based on score
+    if (score < 30) setFraudStatus('passed');
+    else if (score < 70) setFraudStatus('caution');
+    else setFraudStatus('flagged');
   }, []);
 
   const getDescriptionFromAssessment = (assessment: any) => {
@@ -330,6 +410,28 @@ const Estimates = () => {
       description: "The estimate has been submitted for approval by the senior adjuster.",
     });
     navigate("/claims");
+  };
+
+  // Get recommendations based on fraud status
+  const getFraudRecommendations = () => {
+    if (fraudStatus === 'flagged') {
+      return [
+        "Initiate detailed investigation",
+        "Request additional documentation",
+        "Flag for senior adjuster review"
+      ];
+    } else if (fraudStatus === 'caution') {
+      return [
+        "Request secondary review",
+        "Verify repair cost estimates",
+        "Compare with similar claims"
+      ];
+    } else {
+      return [
+        "Proceed with normal claim processing",
+        "No additional verification needed"
+      ];
+    }
   };
 
   return (
@@ -643,6 +745,143 @@ const Estimates = () => {
             </CardContent>
           </Card>
 
+          {/* Add fraud detection card before the estimate summary */}
+          <Card className={`${
+            fraudStatus === "passed" ? "border-l-4 border-l-green-500" : 
+            fraudStatus === "caution" ? "border-l-4 border-l-yellow-500" : 
+            "border-l-4 border-l-red-500"
+          }`}>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-base flex items-center gap-2">
+                  {fraudStatus === "passed" ? (
+                    <ShieldCheck className="h-5 w-5 text-green-500" />
+                  ) : fraudStatus === "caution" ? (
+                    <ShieldAlert className="h-5 w-5 text-yellow-500" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5 text-red-500" />
+                  )}
+                  Fraud Detection
+                </CardTitle>
+                <Badge 
+                  className={`
+                    ${fraudStatus === "passed" ? "bg-green-100 text-green-800 border-green-200" : 
+                     fraudStatus === "caution" ? "bg-yellow-100 text-yellow-800 border-yellow-200" : 
+                     "bg-red-100 text-red-800 border-red-200"}
+                  `}
+                >
+                  {fraudStatus === "passed" ? "Passed" : 
+                   fraudStatus === "caution" ? "Caution" : "Flagged"}
+                </Badge>
+              </div>
+              <CardDescription>
+                Automated fraud risk analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Add visual fraud score indicator */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-green-600 font-medium">Low Risk</span>
+                  <span className="text-red-600 font-medium">High Risk</span>
+                </div>
+                <div className="relative pt-1">
+                  <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-200">
+                    <div className="h-2 rounded bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 w-full"></div>
+                  </div>
+                  <div 
+                    className="absolute h-4 w-4 rounded-full bg-white border-2 shadow-md top-0"
+                    style={{ 
+                      left: `calc(${fraudScore}% - 8px)`, 
+                      borderColor: 
+                        fraudStatus === "passed" ? "rgb(34, 197, 94)" : 
+                        fraudStatus === "caution" ? "rgb(234, 179, 8)" : 
+                        "rgb(239, 68, 68)",
+                    }}
+                  />
+                  <div 
+                    className="absolute text-xs font-bold"
+                    style={{ 
+                      left: `calc(${fraudScore}% - 12px)`,
+                      top: '16px', 
+                      color: 
+                        fraudStatus === "passed" ? "rgb(22, 163, 74)" : 
+                        fraudStatus === "caution" ? "rgb(202, 138, 4)" : 
+                        "rgb(220, 38, 38)",
+                    }}
+                  >
+                    {fraudScore}%
+                  </div>
+                </div>
+              </div>
+              
+              {/* Show fraud reasons in a popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="w-full mt-2">
+                    <Info className="mr-2 h-4 w-4" />
+                    View Detection Details
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-2 text-sm">Detection Factors:</h4>
+                      <ul className="text-sm space-y-1">
+                        {fraudReasons.map((reason, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <div className="mt-0.5">
+                              {fraudStatus === "passed" ? (
+                                <CheckCircle className="h-4 w-4 text-green-500" />
+                              ) : fraudStatus === "caution" ? (
+                                <Info className="h-4 w-4 text-yellow-500" />
+                              ) : (
+                                <AlertTriangle className="h-4 w-4 text-red-500" />
+                              )}
+                            </div>
+                            <span>{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-2 text-sm">Recommended Actions:</h4>
+                      <ul className="text-sm space-y-1">
+                        {getFraudRecommendations().map((rec, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <div className="mt-0.5">•</div>
+                            <span>{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
+              {fraudStatus !== "passed" && (
+                <div className="mt-2 p-2 rounded-md bg-amber-50 border border-amber-100 text-xs">
+                  <div className="flex gap-2 items-start">
+                    <ShieldAlert className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-amber-800">
+                        {fraudStatus === "caution" 
+                          ? "Action Required: Secondary Review" 
+                          : "Action Required: Detailed Investigation"}
+                      </p>
+                      <p className="text-amber-700 mt-1">
+                        {fraudStatus === "caution"
+                          ? "This claim requires review by a senior adjuster before approval."
+                          : "Please escalate this claim for detailed investigation before proceeding."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Estimate Summary</CardTitle>
@@ -682,63 +921,4 @@ const Estimates = () => {
                   <span className="font-medium">CLM-4231</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Customer:</span>
-                  <span>Emily Johnson</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Vehicle:</span>
-                  <span>Toyota Camry 2020</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Created By:</span>
-                  <span>John Doe</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Created On:</span>
-                  <span>Oct 16, 2023</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Status:</span>
-                  <Badge variant="outline" className="bg-yellow-100 border-yellow-200 text-yellow-800">
-                    Pending Approval
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      <AlertDialog 
-        open={showApprovalDialog} 
-        onOpenChange={setShowApprovalDialog}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Submit Estimate for Approval</AlertDialogTitle>
-            <AlertDialogDescription>
-              This estimate will be sent to a senior adjuster for final approval. You can add notes for the reviewer below.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="mt-2 mb-4">
-            <label className="text-sm font-medium mb-1.5 block">Notes for Reviewer (Optional)</label>
-            <textarea
-              className="w-full p-2 border rounded-md text-sm h-24"
-              placeholder="Add any notes or comments for the senior adjuster..."
-              value={approvalNotes}
-              onChange={(e) => setApprovalNotes(e.target.value)}
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={completeApproval}>
-              Submit for Approval
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default Estimates;
+                  <span className="text-muted
