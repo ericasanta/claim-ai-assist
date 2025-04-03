@@ -62,13 +62,34 @@ const DamageImageView = ({
         />
         
         {/* Manual Entry Dot */}
-        <div 
-          className="absolute top-4 left-4 bg-purple-600 rounded-full w-8 h-8 shadow-md flex items-center justify-center cursor-pointer z-10 hover:bg-purple-700 transition-colors"
-          onClick={handleDoubleClick}
-          title="Add manual damage entry"
-        >
-          <CircleIcon className="h-5 w-5 text-white" />
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <div 
+              className="absolute top-4 left-4 bg-purple-600 rounded-full w-8 h-8 shadow-md flex items-center justify-center cursor-pointer z-10 hover:bg-purple-700 transition-colors"
+              title="Add manual damage entry"
+            >
+              <CircleIcon className="h-5 w-5 text-white" />
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className="p-0 w-auto">
+            <DamagePopover 
+              onSave={(damageData) => {
+                if (handleDoubleClick) {
+                  // Create a fake event with coordinates at a default position
+                  const fakeEvent = {
+                    clientX: 100, // Default X position
+                    clientY: 100, // Default Y position
+                    preventDefault: () => {},
+                    stopPropagation: () => {},
+                  } as React.MouseEvent<HTMLDivElement>;
+                  
+                  handleDoubleClick(fakeEvent);
+                }
+              }}
+              onCancel={() => {}}
+            />
+          </PopoverContent>
+        </Popover>
         
         {currentImageAssessments.map((assessment) => (
           <div

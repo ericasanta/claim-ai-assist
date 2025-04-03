@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +16,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ArrowRight, Plus, Trash2 } from "lucide-react";
 
-// Import custom components
 import DamageImageView from "@/components/analysis/DamageImageView";
 import SeverityLegend from "@/components/analysis/SeverityLegend";
 import AssessmentDetails from "@/components/analysis/AssessmentDetails";
@@ -120,7 +118,6 @@ const Analysis = () => {
   const [vehicleData, setVehicleData] = useState(vehicleInfo);
   const imageRef = useRef<HTMLImageElement>(null);
   
-  // New states for manual entry
   const [showPopover, setShowPopover] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
 
@@ -231,21 +228,22 @@ const Analysis = () => {
     }
   };
 
-  // Handle double-click to add manual damage
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isAddingNew || isDrawing) return;
     
     if (!imageRef.current) return;
     
     const rect = imageRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const clientX = e.clientX || rect.left + rect.width * 0.5;
+    const clientY = e.clientY || rect.top + rect.height * 0.5;
+    
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
     
     setPopoverPosition({ x, y });
     setShowPopover(true);
   };
 
-  // Save manually added damage
   const saveManualDamage = (damageData: any) => {
     const newManualDamage = {
       id: Date.now(),
