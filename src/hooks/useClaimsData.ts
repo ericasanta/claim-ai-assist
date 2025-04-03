@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { mockClaims } from "@/data/dashboardData";
 
@@ -16,6 +17,7 @@ export interface Claim {
   incidentDate?: string;
   createdDate?: string;
   claimAmount?: string;
+  uploadToken?: string;
 }
 
 export const useClaimsData = () => {
@@ -29,7 +31,8 @@ export const useClaimsData = () => {
     if (storedClaims.length > 0) {
       setClaims(storedClaims);
     } else {
-      // Otherwise use the mock data
+      // Initialize with mock data and save to localStorage
+      localStorage.setItem('claims', JSON.stringify(mockClaims));
       setClaims(mockClaims);
     }
   }, []);

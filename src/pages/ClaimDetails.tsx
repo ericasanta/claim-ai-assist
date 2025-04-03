@@ -34,6 +34,7 @@ const ClaimDetails = () => {
               status: "In Progress",
               createdDate: "2025-04-01",
               claimAmount: "$3,500",
+              uploadToken: "secure123",
               uploadLink: "/claims/CLM-2296/upload/secure123",
               hasUploads: false,
               uploadCount: 0
@@ -43,7 +44,12 @@ const ClaimDetails = () => {
         }
         
         const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
+        console.log("Available claims:", storedClaims);
+        console.log("Looking for claim with ID:", claimId);
+        
         const foundClaim = storedClaims.find((c: any) => c.id === claimId);
+        
+        console.log("Found claim:", foundClaim);
         
         if (foundClaim) {
           setClaim(foundClaim);

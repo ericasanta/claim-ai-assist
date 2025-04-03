@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import TasksSection from "@/components/dashboard/TasksSection";
 import MessagesSection from "@/components/dashboard/MessagesSection";
 import RecentClaimsSection from "@/components/dashboard/RecentClaimsSection";
-import { agentTasks, agentMessages } from "@/data/dashboardData";
+import { agentTasks, agentMessages, mockClaims } from "@/data/dashboardData";
 import { useClaimsData } from "@/hooks/useClaimsData";
 import { useDashboardActions } from "@/hooks/useDashboardActions";
 
@@ -17,6 +17,11 @@ const Dashboard = () => {
   const { copyUploadLink, handleTaskAction } = useDashboardActions();
   
   useEffect(() => {
+    // Initialize localStorage if needed
+    if (!localStorage.getItem('claims')) {
+      localStorage.setItem('claims', JSON.stringify(mockClaims));
+    }
+    
     // Get tasks from localStorage if they exist
     const storedTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
     if (storedTasks.length > 0) {
