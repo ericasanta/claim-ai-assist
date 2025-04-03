@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -41,25 +40,76 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeftIcon, CalendarIcon, FileUp, Upload } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, FileUp, Upload, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+
+const mockPolicies = [
+  { 
+    id: "POL-12345", 
+    customerName: "John Smith", 
+    vehicleMake: "Toyota", 
+    vehicleModel: "Camry", 
+    vehicleYear: "2020",
+    policyType: "Full Coverage",
+    policyStatus: "Active",
+    effectiveDate: "2023-01-01",
+    expirationDate: "2024-01-01",
+    address: "123 Main St, Anytown, CA 12345",
+    phone: "(555) 123-4567",
+    email: "john.smith@example.com"
+  },
+  { 
+    id: "POL-67890", 
+    customerName: "Jane Doe", 
+    vehicleMake: "Honda", 
+    vehicleModel: "Civic", 
+    vehicleYear: "2021",
+    policyType: "Liability Only",
+    policyStatus: "Active",
+    effectiveDate: "2023-03-15",
+    expirationDate: "2024-03-15",
+    address: "456 Oak Ave, Somewhere, CA 54321",
+    phone: "(555) 987-6543",
+    email: "jane.doe@example.com"
+  },
+  { 
+    id: "POL-24680", 
+    customerName: "Robert Johnson", 
+    vehicleMake: "Ford", 
+    vehicleModel: "Explorer", 
+    vehicleYear: "2019",
+    policyType: "Full Coverage",
+    policyStatus: "Active",
+    effectiveDate: "2022-11-10",
+    expirationDate: "2023-11-10",
+    address: "789 Pine St, Elsewhere, CA 67890",
+    phone: "(555) 456-7890",
+    email: "robert.johnson@example.com"
+  }
+];
 
 const NewClaim = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [files, setFiles] = useState<File[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showPolicyLookup, setShowPolicyLookup] = useState(true);
+  const [selectedPolicy, setSelectedPolicy] = useState<typeof mockPolicies[0] | null>(null);
+  const [policySearchQuery, setPolicySearchQuery] = useState("");
+  const [filteredPolicies, setFilteredPolicies] = useState(mockPolicies);
   
   const form = useForm({
     defaultValues: {
-      policyNumber: "",
-      customerName: "",
-      vehicleMake: "",
-      vehicleModel: "",
-      vehicleYear: "",
+      policyNumber: selectedPolicy?.id || "",
+      customerName: selectedPolicy?.customerName || "",
+      vehicleMake: selectedPolicy?.vehicleMake || "",
+      vehicleModel: selectedPolicy?.vehicleModel || "",
+      vehicleYear: selectedPolicy?.vehicleYear || "",
       accidentDate: new Date(),
       accidentDescription: "",
       claimType: "",
@@ -67,11 +117,46 @@ const NewClaim = () => {
     },
   });
 
+  const policyLookupForm = useForm({
+    defaultValues: {
+      policyNumberSearch: "",
+      customerNameSearch: "",
+      phoneSearch: "",
+    }
+  });
+
+  const handlePolicySearch = (data: any) => {
+    const query = (data.policyNumberSearch || data.customerNameSearch || data.phoneSearch || "").toLowerCase();
+    setPolicySearchQuery(query);
+    
+    if (!query) {
+      setFilteredPolicies(mockPolicies);
+      return;
+    }
+    
+    const filtered = mockPolicies.filter(policy => 
+      policy.id.toLowerCase().includes(query) || 
+      policy.customerName.toLowerCase().includes(query) ||
+      policy.phone.toLowerCase().includes(query)
+    );
+    
+    setFilteredPolicies(filtered);
+  };
+
+  const selectPolicy = (policy: typeof mockPolicies[0]) => {
+    setSelectedPolicy(policy);
+    form.setValue("policyNumber", policy.id);
+    form.setValue("customerName", policy.customerName);
+    form.setValue("vehicleMake", policy.vehicleMake);
+    form.setValue("vehicleModel", policy.vehicleModel);
+    form.setValue("vehicleYear", policy.vehicleYear);
+    setShowPolicyLookup(false);
+  };
+
   const onSubmit = (data: any) => {
     console.log("Form submitted:", data);
     console.log("Uploaded files:", files);
     
-    // Show confirmation dialog
     setShowConfirmDialog(true);
   };
 
@@ -94,6 +179,165 @@ const NewClaim = () => {
     navigate("/analysis");
   };
 
+  const useMobileView = window.innerWidth < 640;
+
+  if (showPolicyLookup) {
+    const PolicyLookupContent = () => (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold mb-2">Policy Lookup</h3>
+          <p className="text-muted-foreground">
+            Search for a policy to create a new claim
+          </p>
+        </div>
+
+        <Form {...policyLookupForm}>
+          <form onSubmit={policyLookupForm.handleSubmit(handlePolicySearch)} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={policyLookupForm.control}
+                name="policyNumberSearch"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Policy Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. POL-12345" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={policyLookupForm.control}
+                name="customerNameSearch"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Customer Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. John Smith" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={policyLookupForm.control}
+                name="phoneSearch"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. (555) 123-4567" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <Button type="submit" className="w-full">
+              <Search className="mr-2 h-4 w-4" />
+              Search Policies
+            </Button>
+          </form>
+        </Form>
+
+        <div className="mt-6">
+          <h3 className="text-lg font-medium mb-3">Search Results</h3>
+          {filteredPolicies.length === 0 ? (
+            <div className="text-center p-6 border rounded-md">
+              <p className="text-muted-foreground">No policies found</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredPolicies.map((policy) => (
+                <Card key={policy.id} className="hover:bg-accent transition-colors cursor-pointer" onClick={() => selectPolicy(policy)}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold">{policy.customerName}</p>
+                        <p className="text-sm text-muted-foreground">{policy.id} • {policy.policyType}</p>
+                        <div className="mt-1 text-sm">
+                          <p>{policy.vehicleYear} {policy.vehicleMake} {policy.vehicleModel}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                          {policy.policyStatus}
+                        </span>
+                        <p className="text-xs text-muted-foreground mt-1">Exp: {policy.expirationDate}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between pt-4">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => setShowPolicyLookup(false)}
+            disabled={!selectedPolicy}
+          >
+            {selectedPolicy ? "Continue with Selected Policy" : "Select a Policy to Continue"}
+          </Button>
+        </div>
+      </div>
+    );
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mr-2"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-1" />
+            Back
+          </Button>
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">New Claim</h2>
+            <p className="text-muted-foreground">
+              Create a new insurance claim
+            </p>
+          </div>
+        </div>
+
+        {useMobileView ? (
+          <Drawer>
+            <DrawerTrigger asChild>
+              <Button className="w-full">Look Up Policy</Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <div className="mx-auto w-full max-w-sm">
+                <DrawerHeader>
+                  <DrawerTitle>Policy Lookup</DrawerTitle>
+                  <DrawerDescription>
+                    Search for a policy to create a new claim
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-4 pb-0">
+                  <PolicyLookupContent />
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <Card>
+            <CardContent className="pt-6">
+              <PolicyLookupContent />
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center">
@@ -101,15 +345,15 @@ const NewClaim = () => {
           variant="ghost" 
           size="sm" 
           className="mr-2"
-          onClick={() => navigate(-1)}
+          onClick={() => setShowPolicyLookup(true)}
         >
           <ArrowLeftIcon className="h-4 w-4 mr-1" />
-          Back
+          Back to Policy Search
         </Button>
         <div>
           <h2 className="text-3xl font-bold tracking-tight">New Claim</h2>
           <p className="text-muted-foreground">
-            Create a new insurance claim
+            Create a new insurance claim for {selectedPolicy?.customerName || "customer"}
           </p>
         </div>
       </div>
@@ -133,7 +377,7 @@ const NewClaim = () => {
                     <FormItem>
                       <FormLabel>Policy Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. POL-12345" {...field} />
+                        <Input placeholder="e.g. POL-12345" {...field} readOnly />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -148,7 +392,7 @@ const NewClaim = () => {
                     <FormItem>
                       <FormLabel>Customer Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Full name" {...field} />
+                        <Input placeholder="Full name" {...field} readOnly />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -165,7 +409,7 @@ const NewClaim = () => {
                     <FormItem>
                       <FormLabel>Vehicle Make</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Toyota" {...field} />
+                        <Input placeholder="e.g. Toyota" {...field} readOnly />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -180,7 +424,7 @@ const NewClaim = () => {
                     <FormItem>
                       <FormLabel>Vehicle Model</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Camry" {...field} />
+                        <Input placeholder="e.g. Camry" {...field} readOnly />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -195,7 +439,7 @@ const NewClaim = () => {
                     <FormItem>
                       <FormLabel>Vehicle Year</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. 2020" {...field} />
+                        <Input placeholder="e.g. 2020" {...field} readOnly />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
