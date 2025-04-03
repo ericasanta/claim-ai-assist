@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { 
@@ -97,6 +98,7 @@ const Estimates = () => {
   const [fraudReasons, setFraudReasons] = useState<string[]>([]);
   
   useEffect(() => {
+    // Use a single variable for assessments to avoid redeclaration
     const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
     
     if (storedAssessments.length > 0) {
@@ -199,9 +201,7 @@ const Estimates = () => {
       setEstimateItems(initialItems);
     }
     
-    // Add fraud detection calculation
-    const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
-    
+    // Add fraud detection calculation using the existing storedAssessments variable
     // Calculate mock fraud score
     let score = 25; // Base score
     const reasons: string[] = [];
@@ -745,7 +745,7 @@ const Estimates = () => {
             </CardContent>
           </Card>
 
-          {/* Add fraud detection card before the estimate summary */}
+          {/* Fraud detection card */}
           <Card className={`${
             fraudStatus === "passed" ? "border-l-4 border-l-green-500" : 
             fraudStatus === "caution" ? "border-l-4 border-l-yellow-500" : 
@@ -779,7 +779,7 @@ const Estimates = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Add visual fraud score indicator */}
+              {/* Visual fraud score indicator */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-green-600 font-medium">Low Risk</span>
@@ -921,4 +921,46 @@ const Estimates = () => {
                   <span className="font-medium">CLM-4231</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted
+                  <span className="text-muted-foreground">Date Created:</span>
+                  <span className="font-medium">{new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Adjuster:</span>
+                  <span className="font-medium">John Smith</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <AlertDialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Estimate for Approval</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will submit the current estimate for review and approval by a senior adjuster.
+              Add any notes or comments that may be helpful for the approval process.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="my-4">
+            <label className="text-sm font-medium mb-1 block">Approval Notes</label>
+            <textarea 
+              className="w-full rounded-md border border-input bg-background p-2 text-sm" 
+              rows={3}
+              value={approvalNotes}
+              onChange={(e) => setApprovalNotes(e.target.value)}
+              placeholder="Enter any notes or justifications for unusual costs..."
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={completeApproval}>Submit for Approval</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default Estimates;
