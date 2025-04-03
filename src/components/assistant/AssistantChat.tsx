@@ -20,6 +20,9 @@ const simulatedResponses: Record<string, string> = {
   "default": "I don't have specific information on that topic. Would you like me to connect you with a technical specialist who might be able to assist with this question?"
 };
 
+// The specific question that triggers the mock conversation
+const targetQuestion = "What is the typical repair cost for front bumper damage on a 2020 Toyota Prius?";
+
 // Example of a pre-defined mock conversation
 const mockConversation = [
   {
@@ -27,7 +30,11 @@ const mockConversation = [
     role: "assistant",
     content: "Hello! I'm your virtual assistant. How can I help you with your insurance claims today?",
     timestamp: new Date(Date.now() - 120000),
-  },
+  }
+];
+
+// The predefined conversation to display when the target question is asked
+const priusConversation = [
   {
     id: 2,
     role: "user",
@@ -80,7 +87,7 @@ interface AssistantChatProps {
 
 const AssistantChat = ({ onClose }: AssistantChatProps) => {
   const [inputValue, setInputValue] = useState("");
-  // Use the mock conversation as the initial state instead of a single welcome message
+  // Initialize with just the welcome message
   const [messages, setMessages] = useState<Message[]>(mockConversation);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -106,7 +113,33 @@ const AssistantChat = ({ onClose }: AssistantChatProps) => {
     setInputValue("");
     setIsTyping(true);
     
-    // Simulate assistant thinking and typing
+    // Check if the user input matches the target question exactly
+    if (inputValue.trim().toLowerCase() === targetQuestion.toLowerCase()) {
+      // Instead of normal response, we'll play out the entire predefined conversation
+      setTimeout(() => {
+        setIsTyping(false);
+        // Gradually add each message with delays to simulate a conversation
+        let delay = 1000;
+        priusConversation.forEach((message, index) => {
+          // Skip the first message as it's already added as the user message
+          if (index === 0) return;
+          
+          setTimeout(() => {
+            setMessages(prev => [...prev, {
+              ...message,
+              id: Date.now() + index,
+              timestamp: new Date()
+            }]);
+          }, delay);
+          
+          // Increase delay for each message
+          delay += index % 2 === 0 ? 1500 : 2000; // shorter for user, longer for assistant
+        });
+      }, 1500);
+      return;
+    }
+    
+    // For all other questions, use the standard response mechanism
     setTimeout(() => {
       // Generate a response based on keywords
       let response = simulatedResponses.default;
