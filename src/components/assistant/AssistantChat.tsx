@@ -26,8 +26,16 @@ const simulatedResponses: Record<string, string> = {
 // The specific question that triggers the mock conversation
 const targetQuestion = "What is the typical repair cost for front bumper damage on a 2020 Toyota Prius?";
 
+// Types for our chat messages
+interface Message {
+  id: number;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
 // Example of a pre-defined mock conversation
-const mockConversation = [
+const mockConversation: Message[] = [
   {
     id: 1,
     role: "assistant",
@@ -37,7 +45,7 @@ const mockConversation = [
 ];
 
 // The predefined conversation to display when the target question is asked
-const priusConversation = [
+const priusConversation: Message[] = [
   {
     id: 2,
     role: "user",
@@ -111,14 +119,6 @@ const priusConversation = [
     timestamp: new Date(Date.now()),
   },
 ];
-
-// Types for our chat messages
-interface Message {
-  id: number;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-}
 
 interface AssistantChatProps {
   onClose: () => void;

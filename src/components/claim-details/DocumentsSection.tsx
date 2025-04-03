@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,13 +8,21 @@ import { useToast } from "@/hooks/use-toast";
 interface DocumentsSectionProps {
   claim: any;
   onCopyUploadLink: () => void;
+  onAIAnalysis?: () => void;
 }
 
-const DocumentsSection = ({ claim, onCopyUploadLink }: DocumentsSectionProps) => {
+const DocumentsSection = ({ claim, onCopyUploadLink, onAIAnalysis }: DocumentsSectionProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
   const handleAIAnalysis = () => {
+    // If onAIAnalysis prop is provided, use it
+    if (onAIAnalysis) {
+      onAIAnalysis();
+      return;
+    }
+    
+    // Otherwise use default behavior
     // Clear any existing damage assessments to prevent data mixing
     localStorage.removeItem('damageAssessments');
     localStorage.removeItem('selectedDamage');
