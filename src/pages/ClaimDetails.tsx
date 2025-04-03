@@ -11,28 +11,30 @@ import ClaimNotFound from "@/components/claim-details/NotFound";
 import LoadingState from "@/components/claim-details/LoadingState";
 
 const ClaimDetails = () => {
-  const { claimId } = useParams();
+  const { claimId } = useParams<{ claimId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { claims, loading } = useClaimsData();
+  const { claims, loading, getClaimById, updateClaims } = useClaimsData();
   const [claim, setClaim] = useState<any>(null);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     if (!loading && claimId) {
+      console.log("Looking for claim with ID:", claimId, "in", claims.length, "claims");
+      
       // Find the claim in the claims array
-      const foundClaim = claims.find(c => c.id === claimId);
+      const foundClaim = getClaimById(claimId);
       
       if (foundClaim) {
+        console.log("Found claim:", foundClaim);
         setClaim(foundClaim);
         setNotFound(false);
-        console.log("Found claim:", foundClaim);
       } else {
-        console.error(`Claim with ID ${claimId} not found`);
+        console.error(`Claim with ID ${claimId} not found. Available claims:`, claims);
         setNotFound(true);
       }
     }
-  }, [claimId, claims, loading]);
+  }, [claimId, claims, loading, getClaimById]);
 
   const handleCopyUploadLink = () => {
     if (claim && claim.id) {
@@ -45,7 +47,8 @@ const ClaimDetails = () => {
           }
           return c;
         });
-        localStorage.setItem('claims', JSON.stringify(updatedClaims));
+        
+        updateClaims(updatedClaims);
         setClaim({ ...claim, uploadToken: token });
       }
       
@@ -69,6 +72,10 @@ const ClaimDetails = () => {
 
   if (notFound) {
     return <ClaimNotFound />;
+  }
+
+  if (!claim) {
+    return <LoadingState />;
   }
 
   return (

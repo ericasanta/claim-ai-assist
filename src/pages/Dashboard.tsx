@@ -14,7 +14,7 @@ import { useDashboardActions } from "@/hooks/useDashboardActions";
 const Dashboard = () => {
   const [tasks, setTasks] = useState(agentTasks);
   const [isLoading, setIsLoading] = useState(true);
-  const { claims, loading } = useClaimsData();
+  const { claims, loading: claimsLoading } = useClaimsData();
   const { copyUploadLink, handleTaskAction } = useDashboardActions();
   
   useEffect(() => {
@@ -44,7 +44,7 @@ const Dashboard = () => {
     }
   };
 
-  if (isLoading || loading) {
+  if (isLoading || claimsLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -86,10 +86,17 @@ const Dashboard = () => {
       />
 
       {/* Recent Claims Section */}
-      <RecentClaimsSection 
-        claims={claims} 
-        copyUploadLink={copyUploadLink} 
-      />
+      {claims && claims.length > 0 ? (
+        <RecentClaimsSection 
+          claims={claims} 
+          copyUploadLink={copyUploadLink} 
+        />
+      ) : (
+        <div className="bg-white p-6 rounded shadow">
+          <h3 className="text-lg font-medium">No claims available</h3>
+          <p className="text-muted-foreground">There are no recent claims to display.</p>
+        </div>
+      )}
     </div>
   );
 };
