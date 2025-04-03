@@ -26,6 +26,12 @@ const DamagePopover = ({ onSave, onCancel }: DamagePopoverProps) => {
 
   const handleSave = () => {
     onSave(damageData);
+    // The onSave handler will close the popover
+  };
+
+  const handleCancel = () => {
+    onCancel();
+    // The onCancel handler will close the popover
   };
 
   return (
@@ -110,7 +116,7 @@ const DamagePopover = ({ onSave, onCancel }: DamagePopoverProps) => {
         <Button 
           variant="outline" 
           size="sm"
-          onClick={onCancel}
+          onClick={handleCancel}
         >
           <X className="mr-1 h-4 w-4" />
           Cancel

@@ -273,6 +273,10 @@ const Analysis = () => {
     });
   };
 
+  const cancelManualDamage = () => {
+    setShowPopover(false);
+  };
+
   const handleFinishAnalysis = () => {
     setShowConfirmDialog(true);
   };
@@ -404,6 +408,7 @@ const Analysis = () => {
                     handleMouseUp={handleMouseUp}
                     handleDoubleClick={handleDoubleClick}
                     onSaveManualDamage={saveManualDamage}
+                    onCancelManualDamage={cancelManualDamage}
                   />
                   
                   <PopoverContent 
@@ -416,7 +421,7 @@ const Analysis = () => {
                   >
                     <DamagePopover 
                       onSave={saveManualDamage}
-                      onCancel={() => setShowPopover(false)}
+                      onCancel={cancelManualDamage}
                     />
                   </PopoverContent>
                 </div>

@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { Info, Circle as CircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +18,7 @@ interface DamageImageViewProps {
   handleMouseUp: () => void;
   handleDoubleClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSaveManualDamage?: (damageData: any) => void;
+  onCancelManualDamage?: () => void;
 }
 
 const DamageImageView = ({
@@ -35,6 +35,7 @@ const DamageImageView = ({
   handleMouseUp,
   handleDoubleClick,
   onSaveManualDamage,
+  onCancelManualDamage,
 }: DamageImageViewProps) => {
   const imageRef = useRef<HTMLImageElement>(null);
 
@@ -80,7 +81,11 @@ const DamageImageView = ({
                   onSaveManualDamage(damageData);
                 }
               }}
-              onCancel={() => {}}
+              onCancel={() => {
+                if (onCancelManualDamage) {
+                  onCancelManualDamage();
+                }
+              }}
             />
           </PopoverContent>
         </Popover>
