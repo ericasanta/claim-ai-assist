@@ -1,9 +1,12 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import FileUploadForm from "@/components/claim-upload/FileUploadForm";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import FileUploadZone from "@/components/claim-upload/FileUploadZone";
+import FileList from "@/components/claim-upload/FileList";
 import InvalidClaimMessage from "@/components/claim-upload/InvalidClaimMessage";
-import LoadingState from "@/components/claim-upload/LoadingState";
+import { useFileUpload } from "@/hooks/use-file-upload";
 
 const ClaimUpload = () => {
   const { claimId, token } = useParams();
@@ -11,6 +14,16 @@ const ClaimUpload = () => {
   const [claimInfo, setClaimInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   
+  const {
+    uploadedFiles,
+    uploadProgress,
+    uploadStatus,
+    isSubmitting,
+    addFiles,
+    removeFile,
+    simulateUpload
+  } = useFileUpload();
+
   // Check if the claim exists in localStorage
   useEffect(() => {
     const validateClaim = () => {
@@ -63,7 +76,14 @@ const ClaimUpload = () => {
   }, [claimId, token]);
 
   if (isLoading) {
-    return <LoadingState />;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Validating claim...</p>
+        </div>
+      </div>
+    );
   }
 
   if (!isValidClaim) {
@@ -72,7 +92,45 @@ const ClaimUpload = () => {
 
   return (
     <div className="container mx-auto py-8">
-      <FileUploadForm claimId={claimId || ""} claimInfo={claimInfo} />
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Upload Documentation for Claim {claimId}</CardTitle>
+          <CardDescription>
+            Upload photos, videos, and other documents related to your insurance claim.
+            {claimInfo && (
+              <div className="mt-2 text-sm">
+                <p><strong>Policy:</strong> {claimInfo.policyNumber}</p>
+                <p><strong>Date of Incident:</strong> {claimInfo.incidentDate}</p>
+              </div>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <FileUploadZone 
+            isSubmitting={isSubmitting}
+            onFileSelect={addFiles}
+          />
+          
+          <FileList 
+            files={uploadedFiles}
+            progress={uploadProgress}
+            status={uploadStatus}
+            isSubmitting={isSubmitting}
+            onRemoveFile={removeFile}
+          />
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-muted-foreground">
+            Supported formats: JPG, PNG, GIF, MP4, MOV
+          </div>
+          <Button 
+            onClick={simulateUpload} 
+            disabled={uploadedFiles.length === 0 || isSubmitting}
+          >
+            {isSubmitting ? 'Uploading...' : 'Upload Files'}
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 };
