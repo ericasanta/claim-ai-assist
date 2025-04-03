@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -132,16 +133,21 @@ const mockPolicies = [
 ];
 
 const causesOfLoss = [
-  "Collision with another vehicle",
-  "Collision with object",
+  "Rear-end Collision",
+  "Head-on Collision",
+  "Side-impact Collision",
+  "Vehicle Rollover",
+  "Single-Vehicle Accident",
+  "Multi-Vehicle Collision",
+  "Collision with Stationary Object",
+  "Parking Lot Accident",
+  "Weather-related Accident",
+  "Animal Collision",
   "Vandalism",
-  "Theft",
-  "Fire",
-  "Flood",
-  "Hail",
-  "Animal collision",
-  "Falling object",
-  "Other"
+  "Theft-related Damage",
+  "Glass Damage (e.g., windshield)",
+  "Hit-and-Run",
+  "Other (Specify in Notes)"
 ];
 
 const relationshipOptions = [
