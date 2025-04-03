@@ -19,8 +19,10 @@ const ClaimDetails = () => {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    console.log("ClaimDetails component mounted, claimId:", claimId);
+    
     if (!loading && claimId) {
-      console.log("Looking for claim with ID:", claimId, "in", claims.length, "claims");
+      console.log("Looking for claim with ID:", claimId, "from", claims.length, "claims");
       
       // Find the claim in the claims array
       const foundClaim = getClaimById(claimId);
@@ -30,7 +32,8 @@ const ClaimDetails = () => {
         setClaim(foundClaim);
         setNotFound(false);
       } else {
-        console.error(`Claim with ID ${claimId} not found. Available claims:`, claims);
+        console.error(`Claim with ID ${claimId} not found.`);
+        console.log("Available claims:", claims);
         setNotFound(true);
       }
     }
@@ -38,6 +41,8 @@ const ClaimDetails = () => {
 
   const handleCopyUploadLink = () => {
     if (claim && claim.id) {
+      console.log("Generating upload link for claim:", claim.id);
+      
       // Generate a token if one doesn't exist
       if (!claim.uploadToken) {
         const token = `secure${Math.floor(Math.random() * 10000)}`;
@@ -67,16 +72,21 @@ const ClaimDetails = () => {
   };
 
   if (loading) {
+    console.log("ClaimDetails loading state");
     return <LoadingState />;
   }
 
   if (notFound) {
+    console.log("ClaimDetails not found state");
     return <ClaimNotFound />;
   }
 
   if (!claim) {
+    console.log("ClaimDetails no claim data state");
     return <LoadingState />;
   }
+
+  console.log("ClaimDetails rendered with claim data:", claim.id);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

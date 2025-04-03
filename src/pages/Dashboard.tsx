@@ -14,25 +14,33 @@ import { useDashboardActions } from "@/hooks/useDashboardActions";
 const Dashboard = () => {
   const [tasks, setTasks] = useState(agentTasks);
   const [isLoading, setIsLoading] = useState(true);
-  const { claims, loading: claimsLoading } = useClaimsData();
+  const { claims, loading: claimsLoading, error: claimsError } = useClaimsData();
   const { copyUploadLink, handleTaskAction } = useDashboardActions();
   
   useEffect(() => {
+    console.log("Dashboard component mounted");
+    
     // Initialize localStorage if needed
     if (!localStorage.getItem('claims')) {
+      console.log("Initializing claims in localStorage");
       localStorage.setItem('claims', JSON.stringify(mockClaims));
+    } else {
+      console.log("Claims already exist in localStorage");
     }
     
     // Get tasks from localStorage if they exist
     const storedTasks = localStorage.getItem('dashboardTasks');
     if (storedTasks && JSON.parse(storedTasks).length > 0) {
+      console.log("Using tasks from localStorage");
       setTasks(JSON.parse(storedTasks));
     } else {
+      console.log("Initializing tasks in localStorage");
       // Initialize from default tasks if none in localStorage
       localStorage.setItem('dashboardTasks', JSON.stringify(agentTasks));
     }
     
     setIsLoading(false);
+    console.log("Dashboard initialization complete");
   }, []);
 
   // Update tasks state when a task is completed
@@ -45,6 +53,7 @@ const Dashboard = () => {
   };
 
   if (isLoading || claimsLoading) {
+    console.log("Dashboard loading state", { isLoading, claimsLoading });
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -55,7 +64,19 @@ const Dashboard = () => {
     );
   }
 
-  console.log("Dashboard rendered with claims:", claims);
+  if (claimsError) {
+    console.error("Dashboard encountered an error:", claimsError);
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <p className="text-destructive font-medium mb-2">Error loading dashboard data</p>
+          <p className="text-muted-foreground">{claimsError.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("Dashboard rendered with claims:", claims?.length || 0);
 
   return (
     <div className="space-y-6">
