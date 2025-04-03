@@ -19,8 +19,40 @@ export const useFileUpload = () => {
   const addFiles = (newFileList: FileList) => {
     const newFiles = Array.from(newFileList);
     
+    // Check file types and sizes
+    const validFiles = newFiles.filter(file => {
+      // Check if file type is supported
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+      const isDocument = file.type === 'application/pdf';
+      
+      if (!isImage && !isVideo && !isDocument) {
+        toast({
+          title: "Unsupported file type",
+          description: `${file.name} is not a supported file type. Please upload images, videos, or PDF documents.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Check file size
+      const maxSizeInBytes = isVideo ? 100 * 1024 * 1024 : 20 * 1024 * 1024; // 100MB for videos, 20MB for others
+      if (file.size > maxSizeInBytes) {
+        toast({
+          title: "File too large",
+          description: `${file.name} exceeds the maximum file size of ${isVideo ? '100MB' : '20MB'}.`,
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (validFiles.length === 0) return;
+    
     // Initialize progress for each file
-    newFiles.forEach(file => {
+    validFiles.forEach(file => {
       setUploadProgress(prev => ({
         ...prev,
         [file.name]: 0
@@ -31,7 +63,7 @@ export const useFileUpload = () => {
       }));
     });
     
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+    setUploadedFiles(prev => [...prev, ...validFiles]);
   };
 
   const removeFile = (index: number) => {
@@ -177,10 +209,7 @@ export const useFileUpload = () => {
               
               localStorage.setItem('dashboardTasks', JSON.stringify([...dashboardTasks, ...newDashboardTasks]));
               
-              // Clear files after successful upload
-              setUploadedFiles([]);
-              setUploadProgress({});
-              setUploadStatus({});
+              // Don't clear files here as we'll handle the redirect in the ClaimUpload component
             }, 1000);
           }
         }

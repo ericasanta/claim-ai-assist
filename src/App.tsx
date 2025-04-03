@@ -6,6 +6,7 @@ import ClaimsList from "@/pages/ClaimsList";
 import NewClaim from "@/pages/NewClaim";
 import ClaimDetails from "@/pages/ClaimDetails";
 import ClaimUpload from "@/pages/ClaimUpload";
+import UploadSuccess from "@/pages/UploadSuccess";
 import Analysis from "@/pages/Analysis";
 import Estimates from "@/pages/Estimates";
 import Assistant from "@/pages/Assistant";
@@ -24,6 +25,7 @@ function App() {
           <Route path="/claims/new" element={<NewClaim />} />
           <Route path="/claims/:claimId" element={<ClaimDetails />} />
           <Route path="/claims/:claimId/upload/:token" element={<ClaimUpload />} />
+          <Route path="/upload-success" element={<UploadSuccess />} />
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/estimates" element={<Estimates />} />
           <Route path="/assistant" element={<Assistant />} />

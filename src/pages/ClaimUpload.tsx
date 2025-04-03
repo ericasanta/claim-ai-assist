@@ -1,15 +1,20 @@
 
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Image, Video, AlertCircle } from "lucide-react";
 import FileUploadZone from "@/components/claim-upload/FileUploadZone";
 import FileList from "@/components/claim-upload/FileList";
 import InvalidClaimMessage from "@/components/claim-upload/InvalidClaimMessage";
 import { useFileUpload } from "@/hooks/use-file-upload";
+import { useToast } from "@/hooks/use-toast";
 
 const ClaimUpload = () => {
   const { claimId, token } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [isValidClaim, setIsValidClaim] = useState(false);
   const [claimInfo, setClaimInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +87,22 @@ const ClaimUpload = () => {
     return () => clearTimeout(timer);
   }, [claimId, token]);
 
+  const handleSuccessfulUpload = () => {
+    toast({
+      title: "Files Uploaded Successfully",
+      description: `Your files have been uploaded successfully for claim ${claimId}.`,
+    });
+    
+    setTimeout(() => {
+      navigate("/upload-success", { 
+        state: { 
+          claimId,
+          message: "Thank you for uploading your documentation. Your claim is being processed." 
+        } 
+      });
+    }, 2000);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -113,6 +134,41 @@ const ClaimUpload = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <Alert className="bg-blue-50">
+            <AlertCircle className="h-4 w-4 text-blue-500" />
+            <AlertTitle>Tips for better documentation</AlertTitle>
+            <AlertDescription>
+              <ul className="list-disc pl-5 text-sm mt-2">
+                <li>Take photos in good lighting conditions</li>
+                <li>Capture all angles of the damage</li>
+                <li>Include close-up shots of damaged areas</li>
+                <li>If possible, include a video showing all around the vehicle</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-blue-50 rounded-lg p-4 flex items-center">
+              <Image className="h-10 w-10 text-blue-500 mr-3" />
+              <div>
+                <h3 className="font-medium">Photos</h3>
+                <p className="text-sm text-muted-foreground">
+                  JPG, PNG - max 20MB each
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-purple-50 rounded-lg p-4 flex items-center">
+              <Video className="h-10 w-10 text-purple-500 mr-3" />
+              <div>
+                <h3 className="font-medium">Videos</h3>
+                <p className="text-sm text-muted-foreground">
+                  MP4, MOV - max 100MB each
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <FileUploadZone 
             isSubmitting={isSubmitting}
             onFileSelect={addFiles}
@@ -131,10 +187,17 @@ const ClaimUpload = () => {
             Supported formats: JPG, PNG, GIF, MP4, MOV
           </div>
           <Button 
-            onClick={simulateUpload} 
+            onClick={() => {
+              simulateUpload();
+              handleSuccessfulUpload();
+            }} 
             disabled={uploadedFiles.length === 0 || isSubmitting}
+            className="relative overflow-hidden"
           >
             {isSubmitting ? 'Uploading...' : 'Upload Files'}
+            {isSubmitting && (
+              <span className="absolute bottom-0 left-0 h-1 bg-white/30 animate-progress"></span>
+            )}
           </Button>
         </CardFooter>
       </Card>
