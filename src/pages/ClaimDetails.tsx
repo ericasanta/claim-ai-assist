@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { 
@@ -27,7 +26,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
-// Mock data for a specific claim
 const claimData = {
   "CLM-4231": {
     id: "CLM-4231",
@@ -165,14 +163,12 @@ const claimData = {
   }
 };
 
-// Status badges with appropriate colors
 const statusStyles = {
   pending: { label: "Pending", className: "bg-yellow-400 hover:bg-yellow-500" },
   "under-review": { label: "Under Review", className: "bg-blue-500 hover:bg-blue-600" },
   completed: { label: "Completed", className: "bg-green-500 hover:bg-green-600" },
 };
 
-// Priority styles for tasks
 const priorityStyles = {
   high: { label: "High", className: "bg-red-500 hover:bg-red-600" },
   medium: { label: "Medium", className: "bg-yellow-500 hover:bg-yellow-600" },
@@ -183,10 +179,8 @@ const ClaimDetails = () => {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("details");
   
-  // Find the claim data based on the ID from the URL
   const claim = claimData[id as keyof typeof claimData];
   
-  // If claim not found, show error message
   if (!claim) {
     return (
       <div className="flex flex-col items-center justify-center h-full">
@@ -201,6 +195,10 @@ const ClaimDetails = () => {
       </div>
     );
   }
+
+  const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+  const storedClaim = claims.find((c: any) => c.id === id);
+  const uploadLink = storedClaim?.uploadLink || '';
 
   return (
     <div className="space-y-6">
@@ -242,10 +240,8 @@ const ClaimDetails = () => {
           <TabsTrigger value="messages">Messages</TabsTrigger>
         </TabsList>
         
-        {/* Claim Details Tab */}
         <TabsContent value="details" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* Claim Information Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">Claim Information</CardTitle>
@@ -296,7 +292,6 @@ const ClaimDetails = () => {
               </CardContent>
             </Card>
 
-            {/* Policy Information Card */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xl font-bold">Policy Information</CardTitle>
@@ -370,69 +365,95 @@ const ClaimDetails = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Incident Information Card */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-bold">Incident Information</CardTitle>
-              <div className="flex items-center">
-                <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">{claim.incidentDetails.date}</span>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Incident Date</p>
-                    <p className="text-sm font-medium">{claim.incidentDetails.date}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Incident Address</p>
-                    <p className="text-sm font-medium">{claim.incidentDetails.address}</p>
-                  </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold">Incident Information</CardTitle>
+                <div className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">{claim.incidentDetails.date}</span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Latitude/Longitude</p>
-                  <p className="text-sm font-medium">{claim.incidentDetails.coordinates}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Damage Photos */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xl font-bold">Damage Photos</CardTitle>
-              <Button variant="outline" size="sm">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Photos
-              </Button>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {claim.damagePhotos.map((photo, index) => (
-                  <div key={index} className="overflow-hidden rounded-md border">
-                    <AspectRatio ratio={4/3} className="bg-muted">
-                      <img
-                        src={photo.src}
-                        alt={`Damage photo ${index + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    </AspectRatio>
-                    <div className="p-2">
-                      <p className="text-sm font-medium">{photo.name}</p>
-                      <p className="text-xs text-muted-foreground">{photo.type}</p>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid gap-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Incident Date</p>
+                      <p className="text-sm font-medium">{claim.incidentDetails.date}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">Incident Address</p>
+                      <p className="text-sm font-medium">{claim.incidentDetails.address}</p>
                     </div>
                   </div>
-                ))}
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Latitude/Longitude</p>
+                    <p className="text-sm font-medium">{claim.incidentDetails.coordinates}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-xl font-bold">Damage Photos</CardTitle>
+                <Button variant="outline" size="sm">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Photos
+                </Button>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  {claim.damagePhotos.map((photo, index) => (
+                    <div key={index} className="overflow-hidden rounded-md border">
+                      <AspectRatio ratio={4/3} className="bg-muted">
+                        <img
+                          src={photo.src}
+                          alt={`Damage photo ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      </AspectRatio>
+                      <div className="p-2">
+                        <p className="text-sm font-medium">{photo.name}</p>
+                        <p className="text-xs text-muted-foreground">{photo.type}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {uploadLink && (
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-sm font-medium text-muted-foreground">Customer Upload Link</p>
+              <div className="flex items-center gap-2 mt-1">
+                <Link 
+                  to={`/claim-upload/${storedClaim.id}/${storedClaim.uploadToken}`} 
+                  className="text-sm font-medium text-blue-500 hover:underline flex items-center"
+                  target="_blank"
+                >
+                  <Upload className="h-4 w-4 mr-1" />
+                  Share with customer
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/claim-upload/${storedClaim.id}/${storedClaim.uploadToken}`);
+                    toast({
+                      title: "Link copied to clipboard",
+                      description: "You can now share this link with the customer."
+                    });
+                  }}
+                >
+                  Copy Link
+                </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </TabsContent>
         
-        {/* Documents Tab */}
         <TabsContent value="documents" className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -459,7 +480,6 @@ const ClaimDetails = () => {
           </Card>
         </TabsContent>
         
-        {/* Tasks Tab */}
         <TabsContent value="tasks" className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -504,7 +524,6 @@ const ClaimDetails = () => {
           </Card>
         </TabsContent>
         
-        {/* Messages Tab */}
         <TabsContent value="messages" className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
