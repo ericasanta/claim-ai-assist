@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Table, 
   TableBody, 
@@ -38,7 +37,7 @@ const statusStyles = {
 };
 
 // Sample data for demonstration
-const allClaims = [
+const sampleClaims = [
   {
     id: "CLM-4231",
     customer: "Emily Johnson",
@@ -47,6 +46,14 @@ const allClaims = [
     date: "2023-10-15",
     type: "Collision",
     amount: "$4,250.00",
+    createdDate: "2023-10-15",
+    description: "Vehicle collision on Main Street",
+    incidentDate: "2023-10-10",
+    claimAmount: "$4,250.00",
+    uploadLink: "/claims/CLM-4231/upload/abc123",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
   },
   {
     id: "CLM-4230",
@@ -56,6 +63,14 @@ const allClaims = [
     date: "2023-10-14",
     type: "Comprehensive",
     amount: "$1,850.75",
+    createdDate: "2023-10-14",
+    description: "Hail damage to vehicle roof and hood",
+    incidentDate: "2023-10-05",
+    claimAmount: "$1,850.75",
+    uploadLink: "/claims/CLM-4230/upload/def456",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
   },
   {
     id: "CLM-4229",
@@ -65,6 +80,14 @@ const allClaims = [
     date: "2023-10-12",
     type: "Liability",
     amount: "$3,500.00",
+    createdDate: "2023-10-12",
+    description: "Liability claim for property damage",
+    incidentDate: "2023-10-08",
+    claimAmount: "$3,500.00",
+    uploadLink: "/claims/CLM-4229/upload/ghi789",
+    hasUploads: true,
+    uploadCount: 1,
+    hasAiAnalysis: true
   },
   {
     id: "CLM-4228",
@@ -74,6 +97,14 @@ const allClaims = [
     date: "2023-10-10",
     type: "Collision",
     amount: "$7,250.50",
+    createdDate: "2023-10-10",
+    description: "Collision with another vehicle",
+    incidentDate: "2023-10-06",
+    claimAmount: "$7,250.50",
+    uploadLink: "/claims/CLM-4228/upload/jkl012",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
   },
   {
     id: "CLM-4227",
@@ -83,6 +114,14 @@ const allClaims = [
     date: "2023-10-09",
     type: "Comprehensive",
     amount: "$2,800.25",
+    createdDate: "2023-10-09",
+    description: "Comprehensive claim for vehicle damage",
+    incidentDate: "2023-10-04",
+    claimAmount: "$2,800.25",
+    uploadLink: "/claims/CLM-4227/upload/mno345",
+    hasUploads: true,
+    uploadCount: 2,
+    hasAiAnalysis: true
   },
   {
     id: "CLM-4226",
@@ -92,6 +131,14 @@ const allClaims = [
     date: "2023-10-07",
     type: "Collision",
     amount: "$5,150.00",
+    createdDate: "2023-10-07",
+    description: "Collision with pedestrian",
+    incidentDate: "2023-10-03",
+    claimAmount: "$5,150.00",
+    uploadLink: "/claims/CLM-4226/upload/pqr678",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
   },
   {
     id: "CLM-4225",
@@ -101,6 +148,14 @@ const allClaims = [
     date: "2023-10-05",
     type: "Liability",
     amount: "$1,950.25",
+    createdDate: "2023-10-05",
+    description: "Liability claim for personal injury",
+    incidentDate: "2023-10-01",
+    claimAmount: "$1,950.25",
+    uploadLink: "/claims/CLM-4225/upload/stu901",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
   },
   {
     id: "CLM-4224",
@@ -110,6 +165,14 @@ const allClaims = [
     date: "2023-10-03",
     type: "Comprehensive",
     amount: "$3,250.75",
+    createdDate: "2023-10-03",
+    description: "Comprehensive claim for vehicle damage",
+    incidentDate: "2023-09-30",
+    claimAmount: "$3,250.75",
+    uploadLink: "/claims/CLM-4224/upload/vwx234",
+    hasUploads: true,
+    uploadCount: 1,
+    hasAiAnalysis: true
   },
   {
     id: "CLM-4223",
@@ -119,6 +182,14 @@ const allClaims = [
     date: "2023-10-01",
     type: "Collision",
     amount: "$6,500.50",
+    createdDate: "2023-10-01",
+    description: "Collision with another vehicle",
+    incidentDate: "2023-09-28",
+    claimAmount: "$6,500.50",
+    uploadLink: "/claims/CLM-4223/upload/yza567",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
   },
   {
     id: "CLM-4222",
@@ -128,6 +199,14 @@ const allClaims = [
     date: "2023-09-29",
     type: "Comprehensive",
     amount: "$2,100.25",
+    createdDate: "2023-09-29",
+    description: "Comprehensive claim for vehicle damage",
+    incidentDate: "2023-09-25",
+    claimAmount: "$2,100.25",
+    uploadLink: "/claims/CLM-4222/upload/bcd789",
+    hasUploads: true,
+    uploadCount: 2,
+    hasAiAnalysis: true
   },
 ];
 
@@ -135,6 +214,18 @@ const ClaimsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
+  const [allClaims, setAllClaims] = useState(sampleClaims);
+
+  // Initialize localStorage with sample claims if not already present
+  useEffect(() => {
+    const storedClaims = localStorage.getItem('claims');
+    if (!storedClaims) {
+      localStorage.setItem('claims', JSON.stringify(sampleClaims));
+      setAllClaims(sampleClaims);
+    } else {
+      setAllClaims(JSON.parse(storedClaims));
+    }
+  }, []);
 
   // Filter claims based on search, status, and tab
   const filteredClaims = allClaims.filter((claim) => {

@@ -9,16 +9,30 @@ const ClaimDetails = () => {
   const navigate = useNavigate();
   const [claim, setClaim] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const foundClaim = storedClaims.find((c: any) => c.id === claimId);
+    const fetchClaim = () => {
+      setIsLoading(true);
+      try {
+        const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
+        const foundClaim = storedClaims.find((c: any) => c.id === claimId);
+        
+        if (foundClaim) {
+          setClaim(foundClaim);
+          setNotFound(false);
+        } else {
+          setNotFound(true);
+        }
+      } catch (error) {
+        console.error("Error fetching claim:", error);
+        setNotFound(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    if (foundClaim) {
-      setClaim(foundClaim);
-    }
-
-    setIsLoading(false);
+    fetchClaim();
   }, [claimId]);
 
   const handleCopyUploadLink = () => {
@@ -35,11 +49,39 @@ const ClaimDetails = () => {
   };
 
   if (isLoading) {
-    return <div>Loading claim details...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Loading claim details...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!claim) {
-    return <div>Claim not found.</div>;
+  if (notFound) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="flex items-center justify-center mb-4">
+              <AlertCircle className="h-12 w-12 text-destructive" />
+            </div>
+            <CardTitle className="text-center">Claim Not Found</CardTitle>
+            <CardDescription className="text-center">
+              The claim you are looking for does not exist or has been removed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center pt-4">
+            <Link to="/claims">
+              <Button>
+                Return to Claims List
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (
