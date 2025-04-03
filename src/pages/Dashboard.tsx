@@ -55,6 +55,8 @@ const Dashboard = () => {
     );
   }
 
+  console.log("Dashboard rendered with claims:", claims);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

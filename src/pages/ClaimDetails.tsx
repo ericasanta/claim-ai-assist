@@ -26,6 +26,7 @@ const ClaimDetails = () => {
       if (foundClaim) {
         setClaim(foundClaim);
         setNotFound(false);
+        console.log("Found claim:", foundClaim);
       } else {
         console.error(`Claim with ID ${claimId} not found`);
         setNotFound(true);

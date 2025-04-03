@@ -39,6 +39,7 @@ export const useClaimsData = () => {
     } catch (error) {
       console.error("Error loading claims:", error);
       // Fallback to mock data if there's an error
+      localStorage.setItem('claims', JSON.stringify(mockClaims));
       setClaims(mockClaims);
     } finally {
       setLoading(false);
