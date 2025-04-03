@@ -1,42 +1,37 @@
-
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import AppLayout from "./components/layout/AppLayout";
-import Home from "./pages/Dashboard";
-import ClaimsList from "./pages/ClaimsList";
-import NewClaim from "./pages/NewClaim";
-import Analysis from "./pages/Analysis";
-import Estimates from "./pages/Estimates";
-import Assistant from "./pages/Assistant";
-import ClaimDetails from "./pages/ClaimDetails";
-import NotFound from "./pages/NotFound";
-import ClaimUpload from "./pages/ClaimUpload";
+import Index from "@/pages/Index";
+import Dashboard from "@/pages/Dashboard";
+import ClaimsList from "@/pages/ClaimsList";
+import NewClaim from "@/pages/NewClaim";
+import ClaimDetails from "@/pages/ClaimDetails";
+import ClaimUpload from "@/pages/ClaimUpload";
+import Analysis from "@/pages/Analysis";
+import Estimates from "@/pages/Estimates";
+import Assistant from "@/pages/Assistant";
+import NotFound from "@/pages/NotFound";
+import AppLayout from "@/layouts/AppLayout";
+import { Toaster } from "@/components/ui/toaster"
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+function App() {
+  return (
+    <BrowserRouter>
+      <AppLayout>
         <Routes>
-          <Route path="/" element={<AppLayout><Home /></AppLayout>} />
-          <Route path="/claims" element={<AppLayout><ClaimsList /></AppLayout>} />
-          <Route path="/claims/new" element={<AppLayout><NewClaim /></AppLayout>} />
-          <Route path="/claims/:id" element={<AppLayout><ClaimDetails /></AppLayout>} />
-          <Route path="/analysis" element={<AppLayout><Analysis /></AppLayout>} />
-          <Route path="/estimates" element={<AppLayout><Estimates /></AppLayout>} />
-          <Route path="/assistant" element={<AppLayout><Assistant /></AppLayout>} />
-          <Route path="/claim-upload/:claimId/:token" element={<ClaimUpload />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/claims" element={<ClaimsList />} />
+          <Route path="/claims/new" element={<NewClaim />} />
+          <Route path="/claims/:claimId" element={<ClaimDetails />} />
+          <Route path="/claims/:claimId/upload/:token" element={<ClaimUpload />} />
+          <Route path="/analysis" element={<Analysis />} />
+          <Route path="/estimates" element={<Estimates />} />
+          <Route path="/assistant" element={<Assistant />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+        <Toaster />
+      </AppLayout>
+    </BrowserRouter>
+  );
+}
 
 export default App;

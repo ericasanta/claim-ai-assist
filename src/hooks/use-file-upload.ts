@@ -93,8 +93,8 @@ export const useFileUpload = () => {
               const claims = JSON.parse(localStorage.getItem('claims') || '[]');
               const updatedClaims = claims.map((claim: any) => {
                 if (claim.id === claimId) {
-                  // Create a new task for this upload
-                  const newTask = {
+                  // Create new tasks for this upload
+                  const reviewTask = {
                     id: `TSK-${Math.floor(Math.random() * 10000)}`,
                     description: `Review ${uploadedFiles.length} new document(s) uploaded for claim ${claimId}`,
                     dueIn: "Today",
@@ -102,29 +102,80 @@ export const useFileUpload = () => {
                     type: "documentReview"
                   };
                   
+                  const aiAnalysisTask = {
+                    id: `TSK-${Math.floor(Math.random() * 10000)}`,
+                    description: `Analyze vehicle damage with AI tools for claim ${claimId}`,
+                    dueIn: "Today",
+                    priority: "high",
+                    type: "aiAnalysis"
+                  };
+                  
+                  const newTasks = [reviewTask];
+                  
+                  // Only add AI analysis task if this is a photo upload (simple check for image files)
+                  const hasImages = uploadedFiles.some(file => 
+                    file.type.startsWith('image/') || 
+                    ['jpg', 'jpeg', 'png', 'gif'].some(ext => 
+                      file.name.toLowerCase().endsWith(`.${ext}`)
+                    )
+                  );
+                  
+                  if (hasImages) {
+                    newTasks.push(aiAnalysisTask);
+                  }
+                  
                   return {
                     ...claim,
                     hasUploads: true,
                     uploadCount: (claim.uploadCount || 0) + uploadedFiles.length,
-                    tasks: claim.tasks ? [...claim.tasks, newTask] : [newTask]
+                    tasks: claim.tasks ? [...claim.tasks, ...newTasks] : newTasks
                   };
                 }
                 return claim;
               });
               localStorage.setItem('claims', JSON.stringify(updatedClaims));
               
-              // Add task to dashboard tasks
+              // Add tasks to dashboard tasks
               const dashboardTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
-              const newDashboardTask = {
+              const newDashboardTasks = [];
+              
+              // Add document review task
+              newDashboardTasks.push({
                 id: `TSK-${Math.floor(Math.random() * 10000)}`,
                 description: `Review ${uploadedFiles.length} new document(s) uploaded for claim ${claimId}`,
                 dueIn: "Today",
                 priority: "high",
                 type: "documentReview",
                 claimId: claimId
-              };
+              });
               
-              localStorage.setItem('dashboardTasks', JSON.stringify([...dashboardTasks, newDashboardTask]));
+              // Add AI analysis task if images were uploaded
+              const hasImages = uploadedFiles.some(file => 
+                file.type.startsWith('image/') || 
+                ['jpg', 'jpeg', 'png', 'gif'].some(ext => 
+                  file.name.toLowerCase().endsWith(`.${ext}`)
+                )
+              );
+              
+              if (hasImages) {
+                newDashboardTasks.push({
+                  id: `TSK-${Math.floor(Math.random() * 10000)}`,
+                  description: `Analyze vehicle damage with AI tools for claim ${claimId}`,
+                  dueIn: "Today",
+                  priority: "high",
+                  type: "aiAnalysis",
+                  claimId: claimId
+                });
+                
+                // Notify user that AI analysis is available
+                toast({
+                  title: "AI Analysis Available",
+                  description: "Images have been uploaded. You can now perform AI damage analysis.",
+                  duration: 5000,
+                });
+              }
+              
+              localStorage.setItem('dashboardTasks', JSON.stringify([...dashboardTasks, ...newDashboardTasks]));
               
               // Clear files after successful upload
               setUploadedFiles([]);

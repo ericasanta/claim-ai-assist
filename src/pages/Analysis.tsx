@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -39,7 +38,6 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeftIcon, ArrowRight, Check, CheckCircle, Circle, Info, MoveHorizontal, MoveVertical, Plus, Sparkles, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Demo image for the prototype
 const damageImages = [
   {
     id: 1,
@@ -58,7 +56,6 @@ const damageImages = [
   },
 ];
 
-// Initial damage assessments (these would come from AI in a real app)
 const initialDamageAssessments = [
   {
     id: 1,
@@ -98,7 +95,6 @@ const initialDamageAssessments = [
   },
 ];
 
-// Legend data for damage types and severity
 const severityLegend = [
   { label: "Low Severity", class: "ai-bounding-box-low" },
   { label: "Medium Severity", class: "ai-bounding-box-medium" },
@@ -121,24 +117,20 @@ const Analysis = () => {
   const [isDrawing, setIsDrawing] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
 
-  // Filter damage assessments for the current active image
   const currentImageAssessments = damageAssessments.filter(
     (assessment) => assessment.imageId === activeImageId
   );
 
-  // Handle clicking on a bounding box
   const handleBoxClick = (id: number) => {
     if (isAddingNew) return;
     setSelectedDamage(id === selectedDamage ? null : id);
   };
 
-  // Handle edit damage assessment
   const handleEditAssessment = (assessment: any) => {
     setEditingAssessment({ ...assessment });
     setIsEditing(true);
   };
 
-  // Save changes to damage assessment
   const saveAssessmentChanges = () => {
     if (editingAssessment) {
       setDamageAssessments((prev) =>
@@ -155,14 +147,12 @@ const Analysis = () => {
     setEditingAssessment(null);
   };
 
-  // Handle delete damage assessment
   const handleDeleteAssessment = () => {
     if (selectedDamage) {
       setShowDeleteDialog(true);
     }
   };
 
-  // Confirm delete assessment
   const confirmDelete = () => {
     setDamageAssessments((prev) =>
       prev.filter((item) => item.id !== selectedDamage)
@@ -175,7 +165,6 @@ const Analysis = () => {
     });
   };
 
-  // Handle start drawing a new bounding box
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAddingNew || !imageRef.current) return;
     
@@ -188,7 +177,6 @@ const Analysis = () => {
     setIsDrawing(true);
   };
 
-  // Handle drawing a bounding box
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDrawing || !imageRef.current) return;
     
@@ -204,11 +192,9 @@ const Analysis = () => {
     });
   };
 
-  // Handle finish drawing a bounding box
   const handleMouseUp = () => {
     if (isDrawing) {
       if (newBoxPosition.width > 5 && newBoxPosition.height > 5) {
-        // Add new assessment if the box is large enough
         const newAssessment = {
           id: Date.now(),
           imageId: activeImageId,
@@ -235,13 +221,49 @@ const Analysis = () => {
     }
   };
 
-  // Handle finish analysis
   const handleFinishAnalysis = () => {
     setShowConfirmDialog(true);
   };
 
-  // Navigate to estimates page after confirmation
   const proceedToEstimates = () => {
+    const totalCost = damageAssessments.reduce((sum, item) => sum + item.estimatedCost, 0);
+    
+    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+    const updatedClaims = claims.map((claim: any) => {
+      if (claim.id === "CLM-4231") {
+        return {
+          ...claim,
+          hasAiAnalysis: true,
+          aiDamageCount: damageAssessments.length,
+          aiEstimate: `$${totalCost.toFixed(2)}`,
+          status: "under-review"
+        };
+      }
+      return claim;
+    });
+    localStorage.setItem('claims', JSON.stringify(updatedClaims));
+    
+    const dashboardTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
+    const filteredTasks = dashboardTasks.filter((task: any) => 
+      !(task.type === "aiAnalysis" && task.claimId === "CLM-4231")
+    );
+    localStorage.setItem('dashboardTasks', JSON.stringify(filteredTasks));
+    
+    const newEstimationTask = {
+      id: `TSK-${Math.floor(Math.random() * 10000)}`,
+      description: "Review AI-generated estimate for claim CLM-4231",
+      dueIn: "Today",
+      priority: "high",
+      type: "estimate",
+      claimId: "CLM-4231"
+    };
+    localStorage.setItem('dashboardTasks', JSON.stringify([...filteredTasks, newEstimationTask]));
+    
+    toast({
+      title: "Analysis Completed",
+      description: `AI damage analysis completed with ${damageAssessments.length} identified issues.`,
+    });
+    
     navigate("/estimates");
   };
 
@@ -341,7 +363,6 @@ const Analysis = () => {
                   style={{ cursor: isAddingNew ? 'crosshair' : 'default' }}
                 />
                 
-                {/* Render damage assessment bounding boxes */}
                 {currentImageAssessments.map((assessment) => (
                   <div
                     key={assessment.id}
@@ -366,7 +387,6 @@ const Analysis = () => {
                   </div>
                 ))}
                 
-                {/* New box being drawn */}
                 {isDrawing && (
                   <div
                     className="ai-bounding-box ai-bounding-box-medium"
@@ -638,7 +658,6 @@ const Analysis = () => {
         </div>
       </div>
 
-      {/* Delete confirmation dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -659,7 +678,6 @@ const Analysis = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Complete analysis confirmation dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

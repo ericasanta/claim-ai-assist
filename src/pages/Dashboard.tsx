@@ -40,35 +40,40 @@ const agentTasks = [
     description: "Review damage assessment for claim CLM-4231",
     dueIn: "Today",
     claimId: "CLM-4231",
-    priority: "high"
+    priority: "high",
+    type: "documentReview"
   },
   {
     id: "TSK-1002",
     description: "Call Emily Johnson regarding photo submission for claim",
     dueIn: "Tomorrow",
     claimId: "CLM-4231",
-    priority: "medium"
+    priority: "medium",
+    type: "call"
   },
   {
     id: "TSK-1003",
     description: "Confirm repair shop estimate for Michael Chen's claim",
     dueIn: "2 days",
     claimId: "CLM-4230",
-    priority: "medium"
+    priority: "medium",
+    type: "estimate"
   },
   {
     id: "TSK-1004",
     description: "Submit final approval for Sarah Williams's payout",
     dueIn: "Today",
     claimId: "CLM-4229",
-    priority: "high"
+    priority: "high",
+    type: "approval"
   },
   {
     id: "TSK-1005",
-    description: "Schedule follow-up inspection for David Rodriguez's vehicle",
-    dueIn: "3 days",
+    description: "Analyze vehicle damage with AI tools for David Rodriguez",
+    dueIn: "Today",
     claimId: "CLM-4228",
-    priority: "low"
+    priority: "high",
+    type: "aiAnalysis"
   }
 ];
 
@@ -271,6 +276,39 @@ const Home = () => {
     });
   };
 
+  const handleTaskAction = (taskId: string, action: string) => {
+    // Find the task
+    const dashboardTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
+    const taskIndex = dashboardTasks.findIndex((task: any) => task.id === taskId);
+    
+    if (taskIndex === -1) return;
+    
+    const task = dashboardTasks[taskIndex];
+    
+    if (action === 'view') {
+      // Navigate to appropriate page based on task type
+      if (task.type === 'documentReview') {
+        navigate(`/claims/${task.claimId}`);
+      } else if (task.type === 'aiAnalysis') {
+        navigate('/analysis');
+      } else {
+        navigate(`/claims/${task.claimId}`);
+      }
+    } else if (action === 'complete') {
+      // Remove the task
+      dashboardTasks.splice(taskIndex, 1);
+      localStorage.setItem('dashboardTasks', JSON.stringify(dashboardTasks));
+      
+      toast({
+        title: "Task completed",
+        description: `Task "${task.description}" has been marked as complete.`,
+      });
+      
+      // Force re-render
+      setRecentClaims([...recentClaims]);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -320,7 +358,9 @@ const Home = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {agentTasks.map((task) => (
+              {(JSON.parse(localStorage.getItem('dashboardTasks') || '[]').length > 0 
+                ? JSON.parse(localStorage.getItem('dashboardTasks') || '[]') 
+                : agentTasks).map((task) => (
                 <TableRow key={task.id}>
                   <TableCell className="font-medium">{task.description}</TableCell>
                   <TableCell>
@@ -340,9 +380,22 @@ const Home = () => {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">
-                      Complete
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleTaskAction(task.id, 'view')}
+                      >
+                        View
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleTaskAction(task.id, 'complete')}
+                      >
+                        Complete
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
