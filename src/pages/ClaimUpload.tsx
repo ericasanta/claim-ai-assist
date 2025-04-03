@@ -27,10 +27,12 @@ const ClaimUpload = () => {
   // Check if the claim exists in localStorage
   useEffect(() => {
     const validateClaim = () => {
+      console.log("Validating claim with ID:", claimId, "and token:", token);
       setIsLoading(true);
       try {
         // Initialize claims if they don't exist
         if (!localStorage.getItem('claims')) {
+          console.log("Initializing claims in localStorage");
           const initialClaims = [
             {
               id: "CLM-2296",
@@ -72,7 +74,12 @@ const ClaimUpload = () => {
       }
     };
 
-    validateClaim();
+    // Small delay to ensure the router is fully initialized
+    const timer = setTimeout(() => {
+      validateClaim();
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [claimId, token]);
 
   if (isLoading) {

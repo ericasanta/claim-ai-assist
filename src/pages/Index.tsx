@@ -6,7 +6,12 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    navigate("/dashboard");
+    // Add a small delay to ensure routing is initialized
+    const redirectTimer = setTimeout(() => {
+      navigate("/dashboard", { replace: true });
+    }, 100);
+    
+    return () => clearTimeout(redirectTimer);
   }, [navigate]);
 
   return (
