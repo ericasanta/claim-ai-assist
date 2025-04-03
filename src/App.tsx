@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
 import Dashboard from "@/pages/Dashboard";
@@ -9,7 +10,7 @@ import Analysis from "@/pages/Analysis";
 import Estimates from "@/pages/Estimates";
 import Assistant from "@/pages/Assistant";
 import NotFound from "@/pages/NotFound";
-import AppLayout from "@/layouts/AppLayout";
+import AppLayout from "@/components/layout/AppLayout";
 import { Toaster } from "@/components/ui/toaster"
 
 function App() {
