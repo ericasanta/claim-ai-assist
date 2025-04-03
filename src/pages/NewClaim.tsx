@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Card,
@@ -40,14 +40,33 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeftIcon, CalendarIcon, FileUp, Upload, Search } from "lucide-react";
+import { 
+  ArrowLeftIcon, 
+  CalendarIcon, 
+  FileUp, 
+  Upload, 
+  Search, 
+  Plus, 
+  Car, 
+  Map, 
+  User, 
+  FileText, 
+  Users, 
+  Camera, 
+  Trash2, 
+  MapPin,
+  Info,
+  Clipboard
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
+// Sample policy and vehicle data
 const mockPolicies = [
   { 
     id: "POL-12345", 
@@ -61,7 +80,21 @@ const mockPolicies = [
     expirationDate: "2024-01-01",
     address: "123 Main St, Anytown, CA 12345",
     phone: "(555) 123-4567",
-    email: "john.smith@example.com"
+    email: "john.smith@example.com",
+    licensePlate: "ABC123",
+    vin: "1HGCM82633A123456",
+    drivers: [
+      {
+        name: "John Smith",
+        licenseNumber: "S12345678",
+        relationship: "Self",
+      },
+      {
+        name: "Jane Smith",
+        licenseNumber: "S87654321",
+        relationship: "Spouse",
+      }
+    ]
   },
   { 
     id: "POL-67890", 
@@ -75,7 +108,16 @@ const mockPolicies = [
     expirationDate: "2024-03-15",
     address: "456 Oak Ave, Somewhere, CA 54321",
     phone: "(555) 987-6543",
-    email: "jane.doe@example.com"
+    email: "jane.doe@example.com",
+    licensePlate: "XYZ789",
+    vin: "2T1KR32E13C123456",
+    drivers: [
+      {
+        name: "Jane Doe",
+        licenseNumber: "D12345678",
+        relationship: "Self",
+      }
+    ]
   },
   { 
     id: "POL-24680", 
@@ -89,8 +131,63 @@ const mockPolicies = [
     expirationDate: "2023-11-10",
     address: "789 Pine St, Elsewhere, CA 67890",
     phone: "(555) 456-7890",
-    email: "robert.johnson@example.com"
+    email: "robert.johnson@example.com",
+    licensePlate: "LMN456",
+    vin: "1FTEW1E53MFA12345",
+    drivers: [
+      {
+        name: "Robert Johnson",
+        licenseNumber: "J12345678",
+        relationship: "Self",
+      },
+      {
+        name: "Mary Johnson",
+        licenseNumber: "J87654321",
+        relationship: "Spouse",
+      },
+      {
+        name: "Tom Johnson",
+        licenseNumber: "J23456789",
+        relationship: "Child",
+      }
+    ]
   }
+];
+
+// Mock damage photo examples
+const mockDamagePhotos = [
+  "/lovable-uploads/ae1dd59a-67d6-4a61-ac33-f3b07c93d7d3.png",
+  "/lovable-uploads/13093a36-1dc3-4c11-b2d2-eeb1f28d7501.png",
+  "/lovable-uploads/6032c237-e9ea-4b79-8169-aa8647f17979.png"
+];
+
+// Causes of loss options
+const causesOfLoss = [
+  "Accident", 
+  "Theft", 
+  "Vandalism", 
+  "Fire", 
+  "Flood", 
+  "Hail", 
+  "Animal impact", 
+  "Falling object",
+  "Other"
+];
+
+// US States for dropdowns
+const usStates = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", 
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", 
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", 
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", 
+  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", 
+  "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", 
+  "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+];
+
+// Relationship options
+const relationshipOptions = [
+  "Self", "Spouse", "Child", "Parent", "Sibling", "Friend", "Other"
 ];
 
 const NewClaim = () => {
@@ -102,18 +199,67 @@ const NewClaim = () => {
   const [selectedPolicy, setSelectedPolicy] = useState<typeof mockPolicies[0] | null>(null);
   const [policySearchQuery, setPolicySearchQuery] = useState("");
   const [filteredPolicies, setFilteredPolicies] = useState(mockPolicies);
+  const [activeSection, setActiveSection] = useState("policy-search");
+  const [isVehicleOperated, setIsVehicleOperated] = useState<boolean | null>(null);
+  const [selectedDriverIndex, setSelectedDriverIndex] = useState(0);
+  const [otherVehicles, setOtherVehicles] = useState<Array<any>>([]);
+  const [numOtherVehicles, setNumOtherVehicles] = useState(0);
+  const [witnessesPresent, setWitnessesPresent] = useState<boolean | null>(null);
+  const [pedestriansInjured, setPedestriansInjured] = useState<boolean | null>(null);
+  const [propertyDamage, setPropertyDamage] = useState<boolean | null>(null);
+  const [previewImages, setPreviewImages] = useState<string[]>([]);
+  
+  // Refs for scrolling to sections
+  const sectionRefs = {
+    policySearch: useRef<HTMLDivElement>(null),
+    lossDetails: useRef<HTMLDivElement>(null),
+    insuredVehicle: useRef<HTMLDivElement>(null),
+    driver: useRef<HTMLDivElement>(null),
+    otherVehicles: useRef<HTMLDivElement>(null),
+    involvement: useRef<HTMLDivElement>(null),
+  };
+
+  const scrollToSection = (sectionId: string) => {
+    const section = sectionRefs[sectionId as keyof typeof sectionRefs]?.current;
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+      setActiveSection(sectionId);
+    }
+  };
   
   const form = useForm({
     defaultValues: {
+      // Policy Info
       policyNumber: selectedPolicy?.id || "",
       customerName: selectedPolicy?.customerName || "",
+      
+      // Loss Details
+      lossDate: new Date(),
+      causeOfLoss: "",
+      lossDescription: "",
+      lossLocation: "",
+      
+      // Insured Vehicle
       vehicleMake: selectedPolicy?.vehicleMake || "",
       vehicleModel: selectedPolicy?.vehicleModel || "",
       vehicleYear: selectedPolicy?.vehicleYear || "",
-      accidentDate: new Date(),
-      accidentDescription: "",
-      claimType: "",
-      incidentLocation: "",
+      vin: selectedPolicy?.vin || "",
+      licensePlate: selectedPolicy?.licensePlate || "",
+      licenseState: "California",
+      damageDescription: "",
+      
+      // Driver
+      driverName: "",
+      driverLicenseNumber: "",
+      driverRelationship: "",
+      driverPermission: "",
+      driverAddress: "",
+      driverCity: "",
+      driverState: "",
+      driverZip: "",
+      driverPhone: "",
+      
+      // Add other fields as needed
     },
   });
 
@@ -121,23 +267,25 @@ const NewClaim = () => {
     defaultValues: {
       policyNumberSearch: "",
       customerNameSearch: "",
-      phoneSearch: "",
+      licensePlateSearch: "",
     }
   });
 
   const handlePolicySearch = (data: any) => {
-    const query = (data.policyNumberSearch || data.customerNameSearch || data.phoneSearch || "").toLowerCase();
-    setPolicySearchQuery(query);
+    const policyQuery = data.policyNumberSearch.toLowerCase();
+    const nameQuery = data.customerNameSearch.toLowerCase();
+    const plateQuery = data.licensePlateSearch.toLowerCase();
     
-    if (!query) {
+    // If all fields are empty, show all policies
+    if (!policyQuery && !nameQuery && !plateQuery) {
       setFilteredPolicies(mockPolicies);
       return;
     }
     
     const filtered = mockPolicies.filter(policy => 
-      policy.id.toLowerCase().includes(query) || 
-      policy.customerName.toLowerCase().includes(query) ||
-      policy.phone.toLowerCase().includes(query)
+      (policyQuery && policy.id.toLowerCase().includes(policyQuery)) || 
+      (nameQuery && policy.customerName.toLowerCase().includes(nameQuery)) ||
+      (plateQuery && policy.licensePlate.toLowerCase().includes(plateQuery))
     );
     
     setFilteredPolicies(filtered);
@@ -145,30 +293,64 @@ const NewClaim = () => {
 
   const selectPolicy = (policy: typeof mockPolicies[0]) => {
     setSelectedPolicy(policy);
+    
+    // Set form values based on selected policy
     form.setValue("policyNumber", policy.id);
     form.setValue("customerName", policy.customerName);
     form.setValue("vehicleMake", policy.vehicleMake);
     form.setValue("vehicleModel", policy.vehicleModel);
     form.setValue("vehicleYear", policy.vehicleYear);
+    form.setValue("vin", policy.vin);
+    form.setValue("licensePlate", policy.licensePlate);
+    
+    // If there are drivers, set the first one as default
+    if (policy.drivers && policy.drivers.length > 0) {
+      form.setValue("driverName", policy.drivers[0].name);
+      form.setValue("driverLicenseNumber", policy.drivers[0].licenseNumber);
+      form.setValue("driverRelationship", policy.drivers[0].relationship);
+    }
+    
     setShowPolicyLookup(false);
+    
+    // Add a slight delay to ensure the component has rendered
+    setTimeout(()=> {
+      scrollToSection('lossDetails');
+    }, 100);
   };
 
   const onSubmit = (data: any) => {
     console.log("Form submitted:", data);
     console.log("Uploaded files:", files);
+    console.log("Other vehicles:", otherVehicles);
+    console.log("Vehicle operated:", isVehicleOperated);
+    console.log("Selected driver:", selectedDriverIndex);
+    console.log("Number of other vehicles:", numOtherVehicles);
+    console.log("Witnesses present:", witnessesPresent);
+    console.log("Pedestrians injured:", pedestriansInjured);
+    console.log("Property damage:", propertyDamage);
     
     setShowConfirmDialog(true);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files);
-      setFiles((prev) => [...prev, ...newFiles]);
+      const selectedFiles = Array.from(e.target.files);
+      setFiles((prev) => [...prev, ...selectedFiles]);
+
+      // Add mock preview images
+      if (previewImages.length < 3) {
+        const newPreviews = [...previewImages];
+        for (let i = 0; i < Math.min(3 - previewImages.length, selectedFiles.length); i++) {
+          newPreviews.push(mockDamagePhotos[i]);
+        }
+        setPreviewImages(newPreviews);
+      }
     }
   };
 
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const confirmClaim = () => {
@@ -179,117 +361,31 @@ const NewClaim = () => {
     navigate("/analysis");
   };
 
+  const addOtherVehicle = () => {
+    setOtherVehicles([...otherVehicles, {
+      licensePlate: "",
+      licenseState: "",
+      damageDescription: "",
+      driverOperating: null,
+      driverName: "",
+      driverPhone: "",
+      driverLicense: "",
+      address: "",
+      city: "",
+      state: "",
+      zip: ""
+    }]);
+  };
+
+  const removeOtherVehicle = (index: number) => {
+    setOtherVehicles(otherVehicles.filter((_, i) => i !== index));
+  };
+
   const useMobileView = window.innerWidth < 640;
 
   if (showPolicyLookup) {
-    const PolicyLookupContent = () => (
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-xl font-semibold mb-2">Policy Lookup</h3>
-          <p className="text-muted-foreground">
-            Search for a policy to create a new claim
-          </p>
-        </div>
-
-        <Form {...policyLookupForm}>
-          <form onSubmit={policyLookupForm.handleSubmit(handlePolicySearch)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={policyLookupForm.control}
-                name="policyNumberSearch"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Policy Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. POL-12345" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={policyLookupForm.control}
-                name="customerNameSearch"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. John Smith" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={policyLookupForm.control}
-                name="phoneSearch"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Phone Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. (555) 123-4567" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <Button type="submit" className="w-full">
-              <Search className="mr-2 h-4 w-4" />
-              Search Policies
-            </Button>
-          </form>
-        </Form>
-
-        <div className="mt-6">
-          <h3 className="text-lg font-medium mb-3">Search Results</h3>
-          {filteredPolicies.length === 0 ? (
-            <div className="text-center p-6 border rounded-md">
-              <p className="text-muted-foreground">No policies found</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredPolicies.map((policy) => (
-                <Card key={policy.id} className="hover:bg-accent transition-colors cursor-pointer" onClick={() => selectPolicy(policy)}>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold">{policy.customerName}</p>
-                        <p className="text-sm text-muted-foreground">{policy.id} • {policy.policyType}</p>
-                        <div className="mt-1 text-sm">
-                          <p>{policy.vehicleYear} {policy.vehicleMake} {policy.vehicleModel}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                          {policy.policyStatus}
-                        </span>
-                        <p className="text-xs text-muted-foreground mt-1">Exp: {policy.expirationDate}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-between pt-4">
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => setShowPolicyLookup(false)}
-            disabled={!selectedPolicy}
-          >
-            {selectedPolicy ? "Continue with Selected Policy" : "Select a Policy to Continue"}
-          </Button>
-        </div>
-      </div>
-    );
-
     return (
-      <div className="space-y-6">
+      <div className="space-y-6" ref={sectionRefs.policySearch}>
         <div className="flex items-center">
           <Button 
             variant="ghost" 
@@ -303,168 +399,205 @@ const NewClaim = () => {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">New Claim</h2>
             <p className="text-muted-foreground">
-              Create a new insurance claim
+              Find your policy to create a new insurance claim
             </p>
           </div>
         </div>
 
-        {useMobileView ? (
-          <Drawer>
-            <DrawerTrigger asChild>
-              <Button className="w-full">Look Up Policy</Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <div className="mx-auto w-full max-w-sm">
-                <DrawerHeader>
-                  <DrawerTitle>Policy Lookup</DrawerTitle>
-                  <DrawerDescription>
-                    Search for a policy to create a new claim
-                  </DrawerDescription>
-                </DrawerHeader>
-                <div className="p-4 pb-0">
-                  <PolicyLookupContent />
+        <Card>
+          <CardHeader>
+            <CardTitle>Policy Search</CardTitle>
+            <CardDescription>
+              Search for a policy by policy number, customer name, or license plate
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...policyLookupForm}>
+              <form onSubmit={policyLookupForm.handleSubmit(handlePolicySearch)} className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <FormField
+                    control={policyLookupForm.control}
+                    name="policyNumberSearch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Policy Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. POL-12345" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={policyLookupForm.control}
+                    name="customerNameSearch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Customer Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. John Smith" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={policyLookupForm.control}
+                    name="licensePlateSearch"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>License Plate</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. ABC123" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
                 </div>
-              </div>
-            </DrawerContent>
-          </Drawer>
-        ) : (
-          <Card>
-            <CardContent className="pt-6">
-              <PolicyLookupContent />
-            </CardContent>
-          </Card>
-        )}
+
+                <Button type="submit" className="w-full">
+                  <Search className="mr-2 h-4 w-4" />
+                  Find My Policy
+                </Button>
+              </form>
+            </Form>
+
+            <div className="mt-6">
+              <h3 className="text-lg font-medium mb-3">Search Results</h3>
+              {filteredPolicies.length === 0 ? (
+                <div className="text-center p-6 border rounded-md">
+                  <p className="text-muted-foreground">No policies found</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredPolicies.map((policy) => (
+                    <Card key={policy.id} className="hover:bg-accent transition-colors cursor-pointer" onClick={() => selectPolicy(policy)}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-semibold">{policy.customerName}</p>
+                            <p className="text-sm text-muted-foreground">{policy.id} • {policy.policyType}</p>
+                            <div className="mt-1 text-sm">
+                              <p>{policy.vehicleYear} {policy.vehicleMake} {policy.vehicleModel}</p>
+                              <p className="text-xs text-muted-foreground">License Plate: {policy.licensePlate}</p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                              {policy.policyStatus}
+                            </span>
+                            <p className="text-xs text-muted-foreground mt-1">Exp: {policy.expirationDate}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="mr-2"
-          onClick={() => setShowPolicyLookup(true)}
-        >
-          <ArrowLeftIcon className="h-4 w-4 mr-1" />
-          Back to Policy Search
-        </Button>
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">New Claim</h2>
-          <p className="text-muted-foreground">
-            Create a new insurance claim for {selectedPolicy?.customerName || "customer"}
-          </p>
+      <div className="flex items-center justify-between sticky top-0 z-10 bg-background py-2 border-b">
+        <div className="flex items-center">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mr-2"
+            onClick={() => setShowPolicyLookup(true)}
+          >
+            <ArrowLeftIcon className="h-4 w-4 mr-1" />
+            Back to Policy Search
+          </Button>
+          <div>
+            <h2 className="text-xl font-bold tracking-tight md:text-2xl">New Claim</h2>
+            <p className="text-sm text-muted-foreground">
+              {selectedPolicy?.customerName} - {selectedPolicy?.id}
+            </p>
+          </div>
         </div>
+        
+        {/* Navigation Menu */}
+        {!useMobileView ? (
+          <div className="hidden md:flex space-x-2">
+            <Button 
+              variant={activeSection === 'lossDetails' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => scrollToSection('lossDetails')}
+            >
+              <Info className="mr-1 h-4 w-4" /> Loss Details
+            </Button>
+            <Button 
+              variant={activeSection === 'insuredVehicle' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => scrollToSection('insuredVehicle')}
+            >
+              <Car className="mr-1 h-4 w-4" /> Vehicle
+            </Button>
+            <Button 
+              variant={activeSection === 'driver' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => scrollToSection('driver')}
+            >
+              <User className="mr-1 h-4 w-4" /> Driver
+            </Button>
+            <Button 
+              variant={activeSection === 'otherVehicles' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => scrollToSection('otherVehicles')}
+            >
+              <Users className="mr-1 h-4 w-4" /> Other Vehicles
+            </Button>
+            <Button 
+              variant={activeSection === 'involvement' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => scrollToSection('involvement')}
+            >
+              <Clipboard className="mr-1 h-4 w-4" /> Involvement
+            </Button>
+          </div>
+        ) : (
+          <Select onValueChange={(value) => scrollToSection(value)}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Navigate to section" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="lossDetails">Loss Details</SelectItem>
+              <SelectItem value="insuredVehicle">Vehicle</SelectItem>
+              <SelectItem value="driver">Driver</SelectItem>
+              <SelectItem value="otherVehicles">Other Vehicles</SelectItem>
+              <SelectItem value="involvement">Involvement</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card>
+          {/* Loss Details Section */}
+          <Card id="loss-details" ref={sectionRefs.lossDetails}>
             <CardHeader>
-              <CardTitle>Policy & Customer Information</CardTitle>
+              <CardTitle className="flex items-center">
+                <Info className="mr-2 h-5 w-5" /> Loss Details
+              </CardTitle>
               <CardDescription>
-                Enter the policy and customer details for this claim
+                Provide details about when and how the loss occurred
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="policyNumber"
-                  rules={{ required: "Policy Number is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Policy Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. POL-12345" {...field} readOnly />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="customerName"
-                  rules={{ required: "Customer Name is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Customer Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Full name" {...field} readOnly />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <FormField
-                  control={form.control}
-                  name="vehicleMake"
-                  rules={{ required: "Vehicle Make is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vehicle Make</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Toyota" {...field} readOnly />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="vehicleModel"
-                  rules={{ required: "Vehicle Model is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vehicle Model</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Camry" {...field} readOnly />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="vehicleYear"
-                  rules={{ required: "Vehicle Year is required" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Vehicle Year</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. 2020" {...field} readOnly />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Incident Information</CardTitle>
-              <CardDescription>
-                Provide details about the incident
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="accidentDate"
-                  rules={{ required: "Accident Date is required" }}
+                  name="lossDate"
+                  rules={{ required: "Date of Loss is required" }}
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>Date of Incident</FormLabel>
+                      <FormLabel>Date of Loss *</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -503,26 +636,24 @@ const NewClaim = () => {
 
                 <FormField
                   control={form.control}
-                  name="claimType"
-                  rules={{ required: "Claim Type is required" }}
+                  name="causeOfLoss"
+                  rules={{ required: "Cause of Loss is required" }}
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Claim Type</FormLabel>
+                      <FormLabel>Cause of Loss *</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select claim type" />
+                            <SelectValue placeholder="Select cause of loss" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="collision">Collision</SelectItem>
-                          <SelectItem value="comprehensive">Comprehensive</SelectItem>
-                          <SelectItem value="liability">Liability</SelectItem>
-                          <SelectItem value="personalInjury">Personal Injury</SelectItem>
-                          <SelectItem value="uninsuredMotorist">Uninsured Motorist</SelectItem>
+                          {causesOfLoss.map((cause) => (
+                            <SelectItem key={cause} value={cause.toLowerCase()}>{cause}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -533,13 +664,162 @@ const NewClaim = () => {
 
               <FormField
                 control={form.control}
-                name="incidentLocation"
-                rules={{ required: "Incident Location is required" }}
+                name="lossLocation"
+                rules={{ required: "Loss Location is required" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Incident Location</FormLabel>
+                    <FormLabel>Loss Location *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Address where the incident occurred" {...field} />
+                      <Input placeholder="Street address where the incident occurred" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Enter the address where the incident occurred
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lossDescription"
+                rules={{ required: "Description is required" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Describe in detail how the accident occurred"
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Describe in detail how the accident occurred to include how and where it happened. Example: Insured Vehicle was rear ended by other vehicle near Exit 125.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Map would go here in a real implementation */}
+              <div className="border rounded-md p-2">
+                <div className="aspect-video bg-muted flex items-center justify-center">
+                  <MapPin className="h-12 w-12 text-muted-foreground opacity-50" />
+                  <span className="ml-2 text-muted-foreground">Map view would appear here</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Insured Vehicle Section */}
+          <Card id="insured-vehicle" ref={sectionRefs.insuredVehicle}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Car className="mr-2 h-5 w-5" /> Insured Vehicle
+              </CardTitle>
+              <CardDescription>
+                Details about the insured vehicle involved in the incident
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="vehicleMake"
+                  rules={{ required: "Vehicle Make is required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vehicle Make</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Toyota" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="vehicleModel"
+                  rules={{ required: "Vehicle Model is required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vehicle Model</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Camry" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <FormField
+                  control={form.control}
+                  name="vehicleYear"
+                  rules={{ required: "Vehicle Year is required" }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Vehicle Year</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. 2020" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="licensePlate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>License Plate Number</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. ABC123" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="licenseState"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>License State</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select state" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {usStates.map((state) => (
+                            <SelectItem key={state} value={state}>{state}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="vin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>VIN</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Vehicle Identification Number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -548,14 +828,13 @@ const NewClaim = () => {
 
               <FormField
                 control={form.control}
-                name="accidentDescription"
-                rules={{ required: "Accident Description is required" }}
+                name="damageDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Incident Description</FormLabel>
+                    <FormLabel>Damage Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe what happened..."
+                        placeholder="Describe the damage to your vehicle"
                         className="min-h-[100px]"
                         {...field}
                       />
@@ -564,19 +843,9 @@ const NewClaim = () => {
                   </FormItem>
                 )}
               />
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Documentation</CardTitle>
-              <CardDescription>
-                Upload photos of vehicle damage and other relevant documents
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="file-upload">Vehicle Damage Photos</Label>
+              <div className="space-y-2">
+                <Label htmlFor="file-upload">Upload photo(s) of the damages to your vehicle</Label>
                 <div className="flex items-center justify-center border-2 border-dashed rounded-md p-6 cursor-pointer bg-muted/30" onClick={() => document.getElementById('file-upload')?.click()}>
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="h-8 w-8 text-muted-foreground" />
@@ -598,26 +867,28 @@ const NewClaim = () => {
                   Upload clear photos showing all sides of the vehicle damage
                 </FormDescription>
 
-                {files.length > 0 && (
-                  <div className="mt-4 space-y-2">
-                    <Label>Uploaded Files</Label>
-                    <div className="border rounded-md bg-background">
-                      {files.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-2 border-b last:border-b-0"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileUp className="h-4 w-4 text-muted-foreground" />
-                            <div className="text-sm">{file.name}</div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                {previewImages.length > 0 && (
+                  <div className="mt-4">
+                    <Label className="mb-2 block">Uploaded Photos</Label>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                      {previewImages.map((image, index) => (
+                        <div key={index} className="relative group">
+                          <img 
+                            src={image} 
+                            alt={`Damage preview ${index + 1}`} 
+                            className="w-full h-48 object-cover rounded-md"
+                          />
+                          <Button 
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => removeFile(index)}
                           >
-                            Remove
+                            <Trash2 className="h-4 w-4" />
                           </Button>
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm rounded-b-md">
+                            {files[index]?.name || `Vehicle Damage ${index + 1}`}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -625,36 +896,25 @@ const NewClaim = () => {
                 )}
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => navigate(-1)}>
-                Cancel
-              </Button>
-              <Button type="submit">Submit Claim</Button>
-            </CardFooter>
           </Card>
-        </form>
-      </Form>
 
-      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Claim Submitted Successfully</AlertDialogTitle>
-            <AlertDialogDescription>
-              Your claim has been created and is now ready for AI analysis. Would you like to proceed to the analysis page?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => navigate("/claims")}>
-              Go to Claims List
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmClaim}>
-              Proceed to Analysis
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default NewClaim;
+          {/* Driver Information Section */}
+          <Card id="driver" ref={sectionRefs.driver}>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <User className="mr-2 h-5 w-5" /> Driver Information
+              </CardTitle>
+              <CardDescription>
+                Information about who was driving the vehicle
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Was the insured vehicle being operated at the time of the loss?</Label>
+                  <div className="flex flex-wrap gap-4">
+                    <Button 
+                      type="button" 
+                      variant={isVehicleOperated === true ? "default" : "outline"}
+                      className="flex-1"
+                      onClick={() =>
