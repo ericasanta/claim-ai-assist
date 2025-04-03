@@ -1,12 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Calendar, FileText, FileX, Link2, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const ClaimDetails = () => {
   const { claimId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [claim, setClaim] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -15,6 +18,27 @@ const ClaimDetails = () => {
     const fetchClaim = () => {
       setIsLoading(true);
       try {
+        // Initialize claims if they don't exist
+        if (!localStorage.getItem('claims')) {
+          const initialClaims = [
+            {
+              id: "CLM-2296",
+              customer: "Jane Smith",
+              policyNumber: "POL-1234-5678",
+              incidentDate: "2025-03-28",
+              type: "Vehicle Damage",
+              description: "Car damaged in parking lot",
+              status: "In Progress",
+              createdDate: "2025-04-01",
+              claimAmount: "$3,500",
+              uploadLink: "/claims/CLM-2296/upload/secure123",
+              hasUploads: false,
+              uploadCount: 0
+            }
+          ];
+          localStorage.setItem('claims', JSON.stringify(initialClaims));
+        }
+        
         const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
         const foundClaim = storedClaims.find((c: any) => c.id === claimId);
         
@@ -36,10 +60,27 @@ const ClaimDetails = () => {
   }, [claimId]);
 
   const handleCopyUploadLink = () => {
-    if (claim && claim.uploadLink) {
-      const fullLink = `${window.location.origin}${claim.uploadLink}`;
+    if (claim && claim.id) {
+      // Generate a token if one doesn't exist
+      if (!claim.uploadToken) {
+        const token = `secure${Math.floor(Math.random() * 10000)}`;
+        const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
+        const updatedClaims = storedClaims.map((c: any) => {
+          if (c.id === claim.id) {
+            return { ...c, uploadToken: token };
+          }
+          return c;
+        });
+        localStorage.setItem('claims', JSON.stringify(updatedClaims));
+        claim.uploadToken = token;
+      }
+      
+      const fullLink = `${window.location.origin}/claims/${claim.id}/upload/${claim.uploadToken}`;
       navigator.clipboard.writeText(fullLink);
-      alert('Upload link copied to clipboard!');
+      toast({
+        title: 'Upload link copied',
+        description: 'The upload link has been copied to your clipboard'
+      });
     }
   };
 
@@ -97,16 +138,16 @@ const ClaimDetails = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p><strong>Customer:</strong> {claim.customer}</p>
-              <p><strong>Policy Number:</strong> {claim.policyNumber}</p>
-              <p><strong>Date of Incident:</strong> {claim.incidentDate}</p>
-              <p><strong>Type:</strong> {claim.type}</p>
-              <p><strong>Description:</strong> {claim.description}</p>
+              <p><strong>Customer:</strong> {claim?.customer}</p>
+              <p><strong>Policy Number:</strong> {claim?.policyNumber}</p>
+              <p><strong>Date of Incident:</strong> {claim?.incidentDate}</p>
+              <p><strong>Type:</strong> {claim?.type}</p>
+              <p><strong>Description:</strong> {claim?.description}</p>
             </div>
           </CardContent>
         </Card>
         
-        {/* Documents Card - Update this section */}
+        {/* Documents Card */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -116,7 +157,7 @@ const ClaimDetails = () => {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              {claim.hasUploads && (
+              {claim?.hasUploads && (
                 <Button
                   onClick={handleAIAnalysis}
                   variant="outline"
@@ -135,7 +176,7 @@ const ClaimDetails = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {claim.hasUploads ? (
+            {claim?.hasUploads ? (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-4">
                   {/* Display document count */}
@@ -161,7 +202,7 @@ const ClaimDetails = () => {
                   </div>
                 </div>
                 
-                {/* AI Analysis Status - new section */}
+                {/* AI Analysis Status */}
                 {claim.hasAiAnalysis ? (
                   <div className="rounded-lg border p-3 bg-blue-50">
                     <div className="flex items-start gap-3">

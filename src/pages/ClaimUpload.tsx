@@ -10,8 +10,9 @@ import { useFileUpload } from "@/hooks/use-file-upload";
 
 const ClaimUpload = () => {
   const { claimId, token } = useParams();
-  const [isValidClaim, setIsValidClaim] = useState(true);
+  const [isValidClaim, setIsValidClaim] = useState(false);
   const [claimInfo, setClaimInfo] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   const {
     uploadedFiles,
@@ -25,17 +26,65 @@ const ClaimUpload = () => {
 
   // Check if the claim exists in localStorage
   useEffect(() => {
-    const claims = JSON.parse(localStorage.getItem('claims') || '[]');
-    const foundClaim = claims.find((claim: any) => 
-      claim.id === claimId && claim.uploadLink.includes(token || '')
-    );
-    
-    if (!foundClaim) {
-      setIsValidClaim(false);
-    } else {
-      setClaimInfo(foundClaim);
-    }
+    const validateClaim = () => {
+      setIsLoading(true);
+      try {
+        // Initialize claims if they don't exist
+        if (!localStorage.getItem('claims')) {
+          const initialClaims = [
+            {
+              id: "CLM-2296",
+              customer: "Jane Smith",
+              policyNumber: "POL-1234-5678",
+              incidentDate: "2025-03-28",
+              type: "Vehicle Damage",
+              description: "Car damaged in parking lot",
+              status: "In Progress",
+              createdDate: "2025-04-01",
+              claimAmount: "$3,500",
+              uploadToken: "secure123"
+            }
+          ];
+          localStorage.setItem('claims', JSON.stringify(initialClaims));
+        }
+        
+        const claims = JSON.parse(localStorage.getItem('claims') || '[]');
+        console.log("Available claims:", claims);
+        console.log("Looking for claim with ID:", claimId, "and token:", token);
+        
+        const foundClaim = claims.find((claim: any) => {
+          return claim.id === claimId && claim.uploadToken === token;
+        });
+        
+        console.log("Found claim:", foundClaim);
+        
+        if (foundClaim) {
+          setIsValidClaim(true);
+          setClaimInfo(foundClaim);
+        } else {
+          setIsValidClaim(false);
+        }
+      } catch (error) {
+        console.error("Error validating claim:", error);
+        setIsValidClaim(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    validateClaim();
   }, [claimId, token]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Validating claim...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isValidClaim) {
     return <InvalidClaimMessage />;

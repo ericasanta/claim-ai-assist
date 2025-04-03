@@ -11,7 +11,7 @@ import Estimates from "@/pages/Estimates";
 import Assistant from "@/pages/Assistant";
 import NotFound from "@/pages/NotFound";
 import AppLayout from "@/components/layout/AppLayout";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   return (
