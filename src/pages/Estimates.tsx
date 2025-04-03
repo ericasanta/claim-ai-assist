@@ -91,11 +91,51 @@ const Estimates = () => {
         aiGenerated: true,
       }));
       
-      setEstimateItems(generatedItems);
+      const recommendedItem = {
+        id: Date.now() + 1000,
+        description: "Front bumper replacement (OEM Toyota part)",
+        quantity: 1,
+        unitCost: 350,
+        totalCost: 350,
+        category: "Parts",
+        aiRecommended: true,
+        aiGenerated: true,
+      };
+      
+      const laborItem = {
+        id: Date.now() + 1001,
+        description: "Labor: Bumper removal, installation, and painting",
+        quantity: 1,
+        unitCost: 500,
+        totalCost: 500,
+        category: "Labor",
+        aiRecommended: true,
+        aiGenerated: true,
+      };
+      
+      setEstimateItems([...generatedItems, recommendedItem, laborItem]);
     } else {
       const initialItems = [
         {
           id: 1,
+          description: "Front bumper replacement (OEM Toyota part)",
+          quantity: 1,
+          unitCost: 350,
+          totalCost: 350,
+          category: "Parts",
+          aiRecommended: true,
+        },
+        {
+          id: 2,
+          description: "Labor: Bumper removal, installation, and painting",
+          quantity: 1,
+          unitCost: 500,
+          totalCost: 500,
+          category: "Labor",
+          aiRecommended: true,
+        },
+        {
+          id: 3,
           description: "Passenger Door Replacement",
           quantity: 1,
           unitCost: 650,
@@ -103,7 +143,7 @@ const Estimates = () => {
           category: "Parts",
         },
         {
-          id: 2,
+          id: 4,
           description: "Paint & Finish - Door",
           quantity: 1,
           unitCost: 350,
@@ -111,7 +151,7 @@ const Estimates = () => {
           category: "Labor",
         },
         {
-          id: 3,
+          id: 5,
           description: "Bumper Repair",
           quantity: 1,
           unitCost: 450,
@@ -119,7 +159,7 @@ const Estimates = () => {
           category: "Parts",
         },
         {
-          id: 4,
+          id: 6,
           description: "Paint Matching & Finish - Bumper",
           quantity: 1,
           unitCost: 300,
@@ -127,7 +167,7 @@ const Estimates = () => {
           category: "Labor",
         },
         {
-          id: 5,
+          id: 7,
           description: "Surface Scratch Repair - Door",
           quantity: 1,
           unitCost: 150,

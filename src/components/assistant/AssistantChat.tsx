@@ -10,6 +10,9 @@ const simulatedResponses: Record<string, string> = {
   "prius": "The average repair cost for front bumper damage on a 2020 Toyota Prius is between $400 and $1,200, depending on severity. A minor cosmetic repair typically costs around $400–$600, while extensive damage requiring bumper replacement and painting usually ranges from $800–$1,200.",
   "cost references": "Yes. Recent transactions at approved repair shops indicate an average repair cost of approximately $850. For instance:\n\nJohn's Auto Repair: Front bumper replacement & painting – $880 (completed 03/25/2024).\n\nAutoPro Services: Front bumper repair (minor cosmetic damage) – $450 (completed 03/20/2024).",
   "parts only": "The front bumper replacement part for a 2020 Toyota Prius typically costs between $250 and $400, depending on the supplier and whether it's OEM or aftermarket. The OEM front bumper currently averages around $350.",
+  "recommendation": "Considering the severity level identified in the AI damage assessment (moderate structural impact, multiple cracks), replacement of the front bumper is recommended. This option will ensure structural integrity and maintain safety standards.",
+  "estimate report": "I recommend the following line items be added clearly to the estimate report:\n\nPart: Front bumper replacement (OEM Toyota part)\nCost: $350 (part only)\nLabor: ~$500 (includes bumper removal, installation, and painting)\nEstimated Total: $850\n\nThis recommendation aligns with recent approved repair costs and ensures transparency and consistency for approvals.",
+  "add recommendation": "Recommendation added successfully to your estimate report. You can now submit it for approval.",
   "bumper": "Based on recent data from our approved repair shops, the average cost for a Toyota Camry bumper replacement ranges from $800-$1,200 including parts and labor. OEM parts would be at the higher end of the range, while aftermarket parts would be at the lower end.",
   "dent": "The average cost to repair a door dent varies based on severity. Small dents (1-3 inches) typically cost $150-$300 using paintless dent repair techniques. Medium dents (3-6 inches) average $350-$500. Larger dents or those requiring paint work can cost $500-$800+.",
   "paint": "Current labor rates for paint work in our network average $55-$70 per hour. A full door repaint typically requires 3-5 hours of labor plus materials. Recent price increases in paint materials have pushed costs up approximately 8% in the past 6 months.",
@@ -70,6 +73,42 @@ const priusConversation = [
     role: "assistant",
     content: simulatedResponses["parts only"],
     timestamp: new Date(Date.now() - 10000),
+  },
+  {
+    id: 8,
+    role: "user",
+    content: "Based on current analysis, do you recommend replacing or repairing the front bumper for this case?",
+    timestamp: new Date(Date.now() - 8000),
+  },
+  {
+    id: 9,
+    role: "assistant",
+    content: simulatedResponses.recommendation,
+    timestamp: new Date(Date.now() - 6000),
+  },
+  {
+    id: 10,
+    role: "user",
+    content: "What should be included in the estimate report regarding this recommendation?",
+    timestamp: new Date(Date.now() - 4000),
+  },
+  {
+    id: 11,
+    role: "assistant",
+    content: simulatedResponses["estimate report"],
+    timestamp: new Date(Date.now() - 2000),
+  },
+  {
+    id: 12,
+    role: "user",
+    content: "Great. Add that recommendation to the repair estimate report.",
+    timestamp: new Date(Date.now() - 1000),
+  },
+  {
+    id: 13,
+    role: "assistant",
+    content: simulatedResponses["add recommendation"],
+    timestamp: new Date(Date.now()),
   },
 ];
 
@@ -153,6 +192,12 @@ const AssistantChat = ({ onClose }: AssistantChatProps) => {
         response = simulatedResponses["cost references"];
       } else if (lowercaseInput.includes("parts only") || lowercaseInput.includes("excluding labor")) {
         response = simulatedResponses["parts only"];
+      } else if (lowercaseInput.includes("recommend") && lowercaseInput.includes("bumper")) {
+        response = simulatedResponses.recommendation;
+      } else if (lowercaseInput.includes("estimate report") || lowercaseInput.includes("report")) {
+        response = simulatedResponses["estimate report"];
+      } else if (lowercaseInput.includes("add") && lowercaseInput.includes("recommendation")) {
+        response = simulatedResponses["add recommendation"];
       } else if (lowercaseInput.includes("bumper")) {
         response = simulatedResponses.bumper;
       } else if (lowercaseInput.includes("dent")) {
