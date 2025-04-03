@@ -917,4 +917,3 @@ const NewClaim = () => {
                       type="button" 
                       variant={isVehicleOperated === true ? "default" : "outline"}
                       className="flex-1"
-                      onClick={() =>
