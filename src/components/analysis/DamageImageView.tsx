@@ -1,6 +1,6 @@
 
 import { useRef } from "react";
-import { Info } from "lucide-react";
+import { Info, Circle as CircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import DamagePopover from "./DamagePopover";
@@ -60,6 +60,15 @@ const DamageImageView = ({
           className="w-full object-contain max-h-[500px]"
           style={{ cursor: isAddingNew ? 'crosshair' : 'default' }}
         />
+        
+        {/* Manual Entry Dot */}
+        <div 
+          className="absolute top-4 left-4 bg-purple-600 rounded-full w-8 h-8 shadow-md flex items-center justify-center cursor-pointer z-10 hover:bg-purple-700 transition-colors"
+          onClick={handleDoubleClick}
+          title="Add manual damage entry"
+        >
+          <CircleIcon className="h-5 w-5 text-white" />
+        </div>
         
         {currentImageAssessments.map((assessment) => (
           <div

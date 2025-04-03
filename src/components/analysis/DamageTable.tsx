@@ -45,10 +45,10 @@ const DamageTable = ({ damages, selectedDamage, setSelectedDamage }: DamageTable
                 </div>
               </TableCell>
               <TableCell className="text-right">
-                {item.isManual ? "Manual" : item.partConfidence.toFixed(2)}
+                {item.isManual ? "Manual" : `${(item.partConfidence * 100).toFixed(2)}%`}
               </TableCell>
               <TableCell className="text-right">
-                {item.isManual ? "Manual" : item.damageConfidence.toFixed(2)}
+                {item.isManual ? "Manual" : `${(item.damageConfidence * 100).toFixed(2)}%`}
               </TableCell>
             </TableRow>
           ))}

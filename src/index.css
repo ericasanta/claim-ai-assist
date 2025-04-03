@@ -137,3 +137,8 @@
   border-color: rgba(239, 68, 68, 0.7);
   background-color: rgba(239, 68, 68, 0.2);
 }
+
+.ai-bounding-box-manual {
+  border-color: rgba(139, 92, 246, 0.7);
+  background-color: rgba(139, 92, 246, 0.2);
+}
