@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useClaimsData } from "@/hooks/useClaimsData";
 import ClaimSummary from "@/components/claim-details/ClaimSummary";
 import DocumentsSection from "@/components/claim-details/DocumentsSection";
 import ActivityFeed from "@/components/claim-details/ActivityFeed";
@@ -13,75 +14,38 @@ const ClaimDetails = () => {
   const { claimId } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { claims, loading } = useClaimsData();
   const [claim, setClaim] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    const fetchClaim = () => {
-      setIsLoading(true);
-      try {
-        // Initialize claims if they don't exist
-        if (!localStorage.getItem('claims')) {
-          const initialClaims = [
-            {
-              id: "CLM-2296",
-              customer: "Jane Smith",
-              policyNumber: "POL-1234-5678",
-              incidentDate: "2025-03-28",
-              type: "Vehicle Damage",
-              description: "Car damaged in parking lot",
-              status: "In Progress",
-              createdDate: "2025-04-01",
-              claimAmount: "$3,500",
-              uploadToken: "secure123",
-              uploadLink: "/claims/CLM-2296/upload/secure123",
-              hasUploads: false,
-              uploadCount: 0
-            }
-          ];
-          localStorage.setItem('claims', JSON.stringify(initialClaims));
-        }
-        
-        const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
-        console.log("Available claims:", storedClaims);
-        console.log("Looking for claim with ID:", claimId);
-        
-        const foundClaim = storedClaims.find((c: any) => c.id === claimId);
-        
-        console.log("Found claim:", foundClaim);
-        
-        if (foundClaim) {
-          setClaim(foundClaim);
-          setNotFound(false);
-        } else {
-          setNotFound(true);
-        }
-      } catch (error) {
-        console.error("Error fetching claim:", error);
+    if (!loading && claimId) {
+      // Find the claim in the claims array
+      const foundClaim = claims.find(c => c.id === claimId);
+      
+      if (foundClaim) {
+        setClaim(foundClaim);
+        setNotFound(false);
+      } else {
+        console.error(`Claim with ID ${claimId} not found`);
         setNotFound(true);
-      } finally {
-        setIsLoading(false);
       }
-    };
-
-    fetchClaim();
-  }, [claimId]);
+    }
+  }, [claimId, claims, loading]);
 
   const handleCopyUploadLink = () => {
     if (claim && claim.id) {
       // Generate a token if one doesn't exist
       if (!claim.uploadToken) {
         const token = `secure${Math.floor(Math.random() * 10000)}`;
-        const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
-        const updatedClaims = storedClaims.map((c: any) => {
+        const updatedClaims = claims.map(c => {
           if (c.id === claim.id) {
             return { ...c, uploadToken: token };
           }
           return c;
         });
         localStorage.setItem('claims', JSON.stringify(updatedClaims));
-        claim.uploadToken = token;
+        setClaim({ ...claim, uploadToken: token });
       }
       
       const fullLink = `${window.location.origin}/claims/${claim.id}/upload/${claim.uploadToken}`;
@@ -98,7 +62,7 @@ const ClaimDetails = () => {
     navigate('/analysis');
   };
 
-  if (isLoading) {
+  if (loading) {
     return <LoadingState />;
   }
 

@@ -13,7 +13,8 @@ import { useDashboardActions } from "@/hooks/useDashboardActions";
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState(agentTasks);
-  const { claims } = useClaimsData();
+  const [isLoading, setIsLoading] = useState(true);
+  const { claims, loading } = useClaimsData();
   const { copyUploadLink, handleTaskAction } = useDashboardActions();
   
   useEffect(() => {
@@ -23,13 +24,15 @@ const Dashboard = () => {
     }
     
     // Get tasks from localStorage if they exist
-    const storedTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
-    if (storedTasks.length > 0) {
-      setTasks(storedTasks);
+    const storedTasks = localStorage.getItem('dashboardTasks');
+    if (storedTasks && JSON.parse(storedTasks).length > 0) {
+      setTasks(JSON.parse(storedTasks));
     } else {
       // Initialize from default tasks if none in localStorage
       localStorage.setItem('dashboardTasks', JSON.stringify(agentTasks));
     }
+    
+    setIsLoading(false);
   }, []);
 
   // Update tasks state when a task is completed
@@ -40,6 +43,17 @@ const Dashboard = () => {
       setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
     }
   };
+
+  if (isLoading || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

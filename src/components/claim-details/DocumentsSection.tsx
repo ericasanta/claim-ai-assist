@@ -16,7 +16,19 @@ const DocumentsSection = ({ claim, onAIAnalysis, onCopyUploadLink }: DocumentsSe
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  if (!claim) return null;
+  if (!claim) return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Documents & Photos</CardTitle>
+        <CardDescription>Loading document information...</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-center h-32">
+          <div className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <Card>

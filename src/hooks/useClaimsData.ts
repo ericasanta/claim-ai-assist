@@ -22,20 +22,33 @@ export interface Claim {
 
 export const useClaimsData = () => {
   const [claims, setClaims] = useState<Claim[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Get claims from localStorage
-    const storedClaims = JSON.parse(localStorage.getItem('claims') || '[]');
-    
-    // If we have stored claims, use those first
-    if (storedClaims.length > 0) {
-      setClaims(storedClaims);
-    } else {
-      // Initialize with mock data and save to localStorage
-      localStorage.setItem('claims', JSON.stringify(mockClaims));
+    // Get claims from localStorage or initialize with mock data
+    try {
+      const storedClaims = localStorage.getItem('claims');
+      
+      if (storedClaims && JSON.parse(storedClaims).length > 0) {
+        setClaims(JSON.parse(storedClaims));
+      } else {
+        // Initialize with mock data if none exists
+        localStorage.setItem('claims', JSON.stringify(mockClaims));
+        setClaims(mockClaims);
+      }
+    } catch (error) {
+      console.error("Error loading claims:", error);
+      // Fallback to mock data if there's an error
       setClaims(mockClaims);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  return { claims };
+  // Add a method to get a specific claim by ID
+  const getClaimById = (id: string) => {
+    return claims.find(claim => claim.id === id) || null;
+  };
+
+  return { claims, loading, getClaimById };
 };
