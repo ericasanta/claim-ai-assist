@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Calendar, FileX, Link2, Sparkles, AlertCircle } from "lucide-react";
@@ -14,21 +14,8 @@ interface DocumentsSectionProps {
 
 const DocumentsSection = ({ claim, onAIAnalysis, onCopyUploadLink }: DocumentsSectionProps) => {
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  if (!claim) return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Documents & Photos</CardTitle>
-        <CardDescription>Loading document information...</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-center h-32">
-          <div className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full"></div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  if (!claim) return null;
 
   return (
     <Card>

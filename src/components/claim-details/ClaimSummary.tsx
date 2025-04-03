@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 interface ClaimSummaryProps {
   claim: {
-    id?: string;
     customer: string;
     policyNumber: string;
     incidentDate: string;

@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
@@ -231,7 +230,7 @@ const Analysis = () => {
     
     const claims = JSON.parse(localStorage.getItem('claims') || '[]');
     const updatedClaims = claims.map((claim: any) => {
-      if (claim.id === "CLM-2296") {
+      if (claim.id === "CLM-4231") {
         return {
           ...claim,
           hasAiAnalysis: true,
@@ -246,17 +245,17 @@ const Analysis = () => {
     
     const dashboardTasks = JSON.parse(localStorage.getItem('dashboardTasks') || '[]');
     const filteredTasks = dashboardTasks.filter((task: any) => 
-      !(task.type === "aiAnalysis" && task.claimId === "CLM-2296")
+      !(task.type === "aiAnalysis" && task.claimId === "CLM-4231")
     );
     localStorage.setItem('dashboardTasks', JSON.stringify(filteredTasks));
     
     const newEstimationTask = {
       id: `TSK-${Math.floor(Math.random() * 10000)}`,
-      description: "Review AI-generated estimate for claim CLM-2296",
+      description: "Review AI-generated estimate for claim CLM-4231",
       dueIn: "Today",
       priority: "high",
       type: "estimate",
-      claimId: "CLM-2296"
+      claimId: "CLM-4231"
     };
     localStorage.setItem('dashboardTasks', JSON.stringify([...filteredTasks, newEstimationTask]));
     
@@ -265,7 +264,7 @@ const Analysis = () => {
       description: `AI damage analysis completed with ${damageAssessments.length} identified issues.`,
     });
     
-    navigate("/claims/CLM-2296");
+    navigate("/estimates");
   };
 
   return (
@@ -284,7 +283,7 @@ const Analysis = () => {
           <div>
             <h2 className="text-3xl font-bold tracking-tight">AI Damage Analysis</h2>
             <p className="text-muted-foreground">
-              Claim #CLM-2296 | Vehicle Damage | Toyota Camry 2020
+              Claim #CLM-4231 | Emily Johnson | Toyota Camry 2020
             </p>
           </div>
         </div>

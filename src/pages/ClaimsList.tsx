@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Table, 
@@ -29,8 +28,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { Filter, Plus, Search } from "lucide-react";
-import { useClaimsData } from "@/hooks/useClaimsData";
-import { mockClaims } from "@/data/dashboardData";
 
 // Status badges with appropriate colors
 const statusStyles = {
@@ -39,14 +36,199 @@ const statusStyles = {
   completed: { label: "Completed", className: "bg-green-500 hover:bg-green-600" },
 };
 
+// Sample data for demonstration
+const sampleClaims = [
+  {
+    id: "CLM-4231",
+    customer: "Emily Johnson",
+    policyNumber: "POL-78542",
+    status: "pending",
+    date: "2023-10-15",
+    type: "Collision",
+    amount: "$4,250.00",
+    createdDate: "2023-10-15",
+    description: "Vehicle collision on Main Street",
+    incidentDate: "2023-10-10",
+    claimAmount: "$4,250.00",
+    uploadLink: "/claims/CLM-4231/upload/abc123",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
+  },
+  {
+    id: "CLM-4230",
+    customer: "Michael Chen",
+    policyNumber: "POL-96325",
+    status: "under-review",
+    date: "2023-10-14",
+    type: "Comprehensive",
+    amount: "$1,850.75",
+    createdDate: "2023-10-14",
+    description: "Hail damage to vehicle roof and hood",
+    incidentDate: "2023-10-05",
+    claimAmount: "$1,850.75",
+    uploadLink: "/claims/CLM-4230/upload/def456",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
+  },
+  {
+    id: "CLM-4229",
+    customer: "Sarah Williams",
+    policyNumber: "POL-12589",
+    status: "completed",
+    date: "2023-10-12",
+    type: "Liability",
+    amount: "$3,500.00",
+    createdDate: "2023-10-12",
+    description: "Liability claim for property damage",
+    incidentDate: "2023-10-08",
+    claimAmount: "$3,500.00",
+    uploadLink: "/claims/CLM-4229/upload/ghi789",
+    hasUploads: true,
+    uploadCount: 1,
+    hasAiAnalysis: true
+  },
+  {
+    id: "CLM-4228",
+    customer: "David Rodriguez",
+    policyNumber: "POL-36985",
+    status: "under-review",
+    date: "2023-10-10",
+    type: "Collision",
+    amount: "$7,250.50",
+    createdDate: "2023-10-10",
+    description: "Collision with another vehicle",
+    incidentDate: "2023-10-06",
+    claimAmount: "$7,250.50",
+    uploadLink: "/claims/CLM-4228/upload/jkl012",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
+  },
+  {
+    id: "CLM-4227",
+    customer: "Linda Smith",
+    policyNumber: "POL-45632",
+    status: "pending",
+    date: "2023-10-09",
+    type: "Comprehensive",
+    amount: "$2,800.25",
+    createdDate: "2023-10-09",
+    description: "Comprehensive claim for vehicle damage",
+    incidentDate: "2023-10-04",
+    claimAmount: "$2,800.25",
+    uploadLink: "/claims/CLM-4227/upload/mno345",
+    hasUploads: true,
+    uploadCount: 2,
+    hasAiAnalysis: true
+  },
+  {
+    id: "CLM-4226",
+    customer: "Robert Brown",
+    policyNumber: "POL-78965",
+    status: "completed",
+    date: "2023-10-07",
+    type: "Collision",
+    amount: "$5,150.00",
+    createdDate: "2023-10-07",
+    description: "Collision with pedestrian",
+    incidentDate: "2023-10-03",
+    claimAmount: "$5,150.00",
+    uploadLink: "/claims/CLM-4226/upload/pqr678",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
+  },
+  {
+    id: "CLM-4225",
+    customer: "Jennifer Davis",
+    policyNumber: "POL-36521",
+    status: "pending",
+    date: "2023-10-05",
+    type: "Liability",
+    amount: "$1,950.25",
+    createdDate: "2023-10-05",
+    description: "Liability claim for personal injury",
+    incidentDate: "2023-10-01",
+    claimAmount: "$1,950.25",
+    uploadLink: "/claims/CLM-4225/upload/stu901",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
+  },
+  {
+    id: "CLM-4224",
+    customer: "Thomas Miller",
+    policyNumber: "POL-95123",
+    status: "under-review",
+    date: "2023-10-03",
+    type: "Comprehensive",
+    amount: "$3,250.75",
+    createdDate: "2023-10-03",
+    description: "Comprehensive claim for vehicle damage",
+    incidentDate: "2023-09-30",
+    claimAmount: "$3,250.75",
+    uploadLink: "/claims/CLM-4224/upload/vwx234",
+    hasUploads: true,
+    uploadCount: 1,
+    hasAiAnalysis: true
+  },
+  {
+    id: "CLM-4223",
+    customer: "Jessica Wilson",
+    policyNumber: "POL-78542",
+    status: "completed",
+    date: "2023-10-01",
+    type: "Collision",
+    amount: "$6,500.50",
+    createdDate: "2023-10-01",
+    description: "Collision with another vehicle",
+    incidentDate: "2023-09-28",
+    claimAmount: "$6,500.50",
+    uploadLink: "/claims/CLM-4223/upload/yza567",
+    hasUploads: false,
+    uploadCount: 0,
+    hasAiAnalysis: false
+  },
+  {
+    id: "CLM-4222",
+    customer: "Daniel Moore",
+    policyNumber: "POL-45698",
+    status: "pending",
+    date: "2023-09-29",
+    type: "Comprehensive",
+    amount: "$2,100.25",
+    createdDate: "2023-09-29",
+    description: "Comprehensive claim for vehicle damage",
+    incidentDate: "2023-09-25",
+    claimAmount: "$2,100.25",
+    uploadLink: "/claims/CLM-4222/upload/bcd789",
+    hasUploads: true,
+    uploadCount: 2,
+    hasAiAnalysis: true
+  },
+];
+
 const ClaimsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("all");
-  const { claims, loading } = useClaimsData();
+  const [allClaims, setAllClaims] = useState(sampleClaims);
+
+  // Initialize localStorage with sample claims if not already present
+  useEffect(() => {
+    const storedClaims = localStorage.getItem('claims');
+    if (!storedClaims) {
+      localStorage.setItem('claims', JSON.stringify(sampleClaims));
+      setAllClaims(sampleClaims);
+    } else {
+      setAllClaims(JSON.parse(storedClaims));
+    }
+  }, []);
 
   // Filter claims based on search, status, and tab
-  const filteredClaims = claims.filter((claim) => {
+  const filteredClaims = allClaims.filter((claim) => {
     const matchesSearch =
       claim.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -62,19 +244,6 @@ const ClaimsList = () => {
 
     return matchesSearch && matchesStatus && matchesTab;
   });
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading claims...</p>
-        </div>
-      </div>
-    );
-  }
-
-  console.log("ClaimsList rendered with claims:", claims);
 
   return (
     <div className="space-y-6">
@@ -175,8 +344,8 @@ const ClaimsList = () => {
                       <TableCell className="hidden lg:table-cell">{claim.type}</TableCell>
                       <TableCell className="hidden md:table-cell">{claim.amount}</TableCell>
                       <TableCell>
-                        <Badge className={statusStyles[claim.status as keyof typeof statusStyles]?.className || "bg-gray-500"}>
-                          {statusStyles[claim.status as keyof typeof statusStyles]?.label || claim.status}
+                        <Badge className={statusStyles[claim.status as keyof typeof statusStyles].className}>
+                          {statusStyles[claim.status as keyof typeof statusStyles].label}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
