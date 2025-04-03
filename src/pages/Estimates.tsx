@@ -91,7 +91,6 @@ const Estimates = () => {
   const [approvalNotes, setApprovalNotes] = useState("");
   const [showAssistedEstimateButton, setShowAssistedEstimateButton] = useState(true);
 
-  // Add fraud detection state
   const [fraudScore, setFraudScore] = useState(0);
   const [fraudStatus, setFraudStatus] = useState<'passed' | 'caution' | 'flagged'>('passed');
   const [fraudReasons, setFraudReasons] = useState<string[]>([]);
@@ -199,15 +198,12 @@ const Estimates = () => {
       setEstimateItems(initialItems);
     }
     
-    // Add fraud detection calculation
     const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
     
-    // Calculate mock fraud score
-    let score = 25; // Base score
+    let score = 25;
     const reasons: string[] = [];
     
     if (storedAssessments.length > 0) {
-      // Check for high cost items
       const totalCost = storedAssessments.reduce((sum: number, item: any) => sum + item.estimatedCost, 0);
       const averageCost = totalCost / storedAssessments.length;
       
@@ -220,7 +216,6 @@ const Estimates = () => {
         reasons.push("Some repair costs slightly above average");
       }
       
-      // Check for unusual number of high severity damages
       const highSeverityCount = storedAssessments.filter((d: any) => d.severity === "high").length;
       if (highSeverityCount > 2) {
         score += 25;
@@ -231,7 +226,6 @@ const Estimates = () => {
         reasons.push("Presence of high severity damage");
       }
       
-      // Check for manual entries (could indicate manipulation)
       const manualEntries = storedAssessments.filter((d: any) => d.isManual).length;
       if (manualEntries > 1) {
         score += 20;
@@ -241,20 +235,16 @@ const Estimates = () => {
         reasons.push("Manual adjustment detected in damage assessment");
       }
       
-      // Add random factor (5-15) to simulate varying detection logic
       score += 5 + Math.floor(Math.random() * 10);
     } else {
-      // Default reasons if no assessments
       reasons.push("Limited data available for fraud detection");
       reasons.push("Standard verification recommended");
     }
     
-    // Cap at 100
     score = Math.min(score, 100);
     setFraudScore(score);
     setFraudReasons(reasons);
     
-    // Set fraud status based on score
     if (score < 30) setFraudStatus('passed');
     else if (score < 70) setFraudStatus('caution');
     else setFraudStatus('flagged');
@@ -412,7 +402,6 @@ const Estimates = () => {
     navigate("/claims");
   };
 
-  // Get recommendations based on fraud status
   const getFraudRecommendations = () => {
     if (fraudStatus === 'flagged') {
       return [
@@ -745,7 +734,6 @@ const Estimates = () => {
             </CardContent>
           </Card>
 
-          {/* Add fraud detection card before the estimate summary */}
           <Card className={`${
             fraudStatus === "passed" ? "border-l-4 border-l-green-500" : 
             fraudStatus === "caution" ? "border-l-4 border-l-yellow-500" : 
@@ -779,7 +767,6 @@ const Estimates = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Add visual fraud score indicator */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-green-600 font-medium">Low Risk</span>
@@ -815,7 +802,6 @@ const Estimates = () => {
                 </div>
               </div>
               
-              {/* Show fraud reasons in a popover */}
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" size="sm" className="w-full mt-2">
@@ -921,4 +907,46 @@ const Estimates = () => {
                   <span className="font-medium">CLM-4231</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted
+                  <span className="text-muted-foreground">Date Created:</span>
+                  <span className="font-medium">{new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Adjuster:</span>
+                  <span className="font-medium">John Smith</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      <AlertDialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit Estimate for Approval</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will submit the current estimate for review and approval by a senior adjuster.
+              Add any notes or comments that may be helpful for the approval process.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="my-4">
+            <label className="text-sm font-medium mb-1 block">Approval Notes</label>
+            <textarea 
+              className="w-full rounded-md border border-input bg-background p-2 text-sm" 
+              rows={3}
+              value={approvalNotes}
+              onChange={(e) => setApprovalNotes(e.target.value)}
+              placeholder="Enter any notes or justifications for unusual costs..."
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={completeApproval}>Submit for Approval</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default Estimates;
