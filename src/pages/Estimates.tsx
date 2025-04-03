@@ -96,8 +96,10 @@ const Estimates = () => {
   const [fraudReasons, setFraudReasons] = useState<string[]>([]);
   
   useEffect(() => {
+    // Get stored damage assessments once at the beginning
     const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
     
+    // Handle estimate items from assessments
     if (storedAssessments.length > 0) {
       const generatedItems = storedAssessments.map((assessment: any, index: number) => ({
         id: Date.now() + index,
@@ -198,8 +200,7 @@ const Estimates = () => {
       setEstimateItems(initialItems);
     }
     
-    const storedAssessments = JSON.parse(localStorage.getItem('damageAssessments') || '[]');
-    
+    // Calculate fraud score using the already retrieved storedAssessments
     let score = 25;
     const reasons: string[] = [];
     
@@ -923,30 +924,4 @@ const Estimates = () => {
       <AlertDialog open={showApprovalDialog} onOpenChange={setShowApprovalDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Submit Estimate for Approval</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will submit the current estimate for review and approval by a senior adjuster.
-              Add any notes or comments that may be helpful for the approval process.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="my-4">
-            <label className="text-sm font-medium mb-1 block">Approval Notes</label>
-            <textarea 
-              className="w-full rounded-md border border-input bg-background p-2 text-sm" 
-              rows={3}
-              value={approvalNotes}
-              onChange={(e) => setApprovalNotes(e.target.value)}
-              placeholder="Enter any notes or justifications for unusual costs..."
-            />
-          </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={completeApproval}>Submit for Approval</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
-  );
-};
-
-export default Estimates;
+            <AlertDialogTitle>Submit Estimate for Approval</AlertDialogTitle
