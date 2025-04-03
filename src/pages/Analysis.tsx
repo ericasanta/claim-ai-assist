@@ -1,22 +1,7 @@
 
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   AlertDialog,
@@ -28,32 +13,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeftIcon, ArrowRight, Check, CheckCircle, Circle, Info, MoveHorizontal, MoveVertical, Plus, Sparkles, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeftIcon, ArrowRight, Plus, Trash2 } from "lucide-react";
+
+// Import custom components
+import DamageImageView from "@/components/analysis/DamageImageView";
+import SeverityLegend from "@/components/analysis/SeverityLegend";
+import AssessmentDetails from "@/components/analysis/AssessmentDetails";
+import VehicleInfo from "@/components/analysis/VehicleInfo";
+import DamageTable from "@/components/analysis/DamageTable";
+import AnalysisSummary from "@/components/analysis/AnalysisSummary";
+import AIConfidenceCard from "@/components/analysis/AIConfidenceCard";
 
 const damageImages = [
   {
     id: 1,
-    url: "https://www.allstate.com/resources/Allstate/images/tools-resources/car/collision-side-impact-damage-teaser.jpg",
-    title: "Side Impact Photo",
-  },
-  {
-    id: 2,
-    url: "https://images.squarespace-cdn.com/content/v1/5a5506400abd0406785519dd/1551239581044-8V67ZEYEBDMVD22NZ7OD/Paintless+Dent+Repair+on+White+BMW+Bumper",
-    title: "Front Bumper Photo",
-  },
-  {
-    id: 3,
-    url: "https://cdn.carshield.com/cover-images/what-to-do-when-your-car-gets-scratched.jpg",
-    title: "Scratched Door Photo",
+    url: "/lovable-uploads/90dbf0ce-98c7-4f78-b80a-8279dcc61459.png",
+    title: "Toyota Prius Front View",
   },
 ];
 
@@ -61,40 +37,57 @@ const initialDamageAssessments = [
   {
     id: 1,
     imageId: 1,
-    type: "Dent",
+    type: "Front Bumper Damage",
     severity: "high",
-    position: { x: 25, y: 50, width: 20, height: 30 },
-    notes: "Deep impact dent on passenger side door",
-    estimatedCost: 850,
+    position: { x: 65, y: 58, width: 22, height: 13 },
+    notes: "Severe damage to front bumper requiring replacement",
+    estimatedCost: 950,
+    partConfidence: 0.98,
+    damageConfidence: 0.87,
   },
   {
     id: 2,
     imageId: 1,
-    type: "Paint Scratch",
+    type: "Headlight Damage",
     severity: "medium",
-    position: { x: 50, y: 35, width: 30, height: 15 },
-    notes: "Multiple scratches requiring repaint",
+    position: { x: 80, y: 48, width: 10, height: 10 },
+    notes: "Right headlight cracked",
     estimatedCost: 450,
+    partConfidence: 0.95,
+    damageConfidence: 0.82,
   },
   {
     id: 3,
-    imageId: 2,
-    type: "Bumper Damage",
-    severity: "medium",
-    position: { x: 30, y: 40, width: 40, height: 25 },
-    notes: "Bumper dent and misalignment",
-    estimatedCost: 650,
+    imageId: 1,
+    type: "Front Door Damage",
+    severity: "low",
+    position: { x: 35, y: 40, width: 20, height: 25 },
+    notes: "Minor dent and scratches",
+    estimatedCost: 350,
+    partConfidence: 0.92,
+    damageConfidence: 0.68,
   },
   {
     id: 4,
-    imageId: 3,
-    type: "Deep Scratch",
+    imageId: 1,
+    type: "Wheel Damage",
     severity: "low",
-    position: { x: 40, y: 30, width: 25, height: 10 },
-    notes: "Surface level scratches",
+    position: { x: 15, y: 68, width: 15, height: 15 },
+    notes: "Wheel rim scratched",
     estimatedCost: 250,
+    partConfidence: 0.97,
+    damageConfidence: 0.58,
   },
 ];
+
+const vehicleInfo = {
+  make: "Toyota",
+  model: "Prius",
+  year: "2023",
+  color: "Green",
+  view: "Front Right",
+  category: "Carheal X"
+};
 
 const severityLegend = [
   { label: "Low Severity", class: "ai-bounding-box-low" },
@@ -116,6 +109,8 @@ const Analysis = () => {
   const [newBoxPosition, setNewBoxPosition] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
+  const [editingVehicleInfo, setEditingVehicleInfo] = useState(false);
+  const [vehicleData, setVehicleData] = useState(vehicleInfo);
   const imageRef = useRef<HTMLImageElement>(null);
 
   const currentImageAssessments = damageAssessments.filter(
@@ -204,6 +199,8 @@ const Analysis = () => {
           position: newBoxPosition,
           notes: "",
           estimatedCost: 0,
+          partConfidence: 0.90,
+          damageConfidence: 0.75,
         };
         
         setDamageAssessments((prev) => [...prev, newAssessment]);
@@ -224,6 +221,14 @@ const Analysis = () => {
 
   const handleFinishAnalysis = () => {
     setShowConfirmDialog(true);
+  };
+
+  const saveVehicleInfo = () => {
+    setEditingVehicleInfo(false);
+    toast({
+      title: "Vehicle Information Updated",
+      description: "Vehicle details have been saved successfully.",
+    });
   };
 
   const proceedToEstimates = () => {
@@ -326,121 +331,51 @@ const Analysis = () => {
               <CardDescription>
                 AI-detected damage with severity indicators
               </CardDescription>
-
-              <Tabs
-                defaultValue={activeImageId.toString()}
-                onValueChange={(value) => setActiveImageId(parseInt(value))}
-                className="mt-4"
-              >
-                <TabsList className="grid w-full grid-cols-3">
-                  {damageImages.map((image) => (
-                    <TabsTrigger key={image.id} value={image.id.toString()}>
-                      {image.title}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
             </CardHeader>
             <CardContent>
-              {isAddingNew && (
-                <div className="mb-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md flex items-center text-sm">
-                  <Info className="h-4 w-4 mr-2 text-yellow-500" />
-                  Click and drag on the image to draw a new damage assessment area
-                </div>
-              )}
+              <DamageImageView 
+                imageUrl={damageImages.find((img) => img.id === activeImageId)?.url || ""}
+                imageAlt="Vehicle Damage"
+                isAddingNew={isAddingNew}
+                isDrawing={isDrawing}
+                currentImageAssessments={currentImageAssessments}
+                selectedDamage={selectedDamage}
+                newBoxPosition={newBoxPosition}
+                handleBoxClick={handleBoxClick}
+                handleMouseDown={handleMouseDown}
+                handleMouseMove={handleMouseMove}
+                handleMouseUp={handleMouseUp}
+              />
               
-              <div 
-                className="relative border rounded-md overflow-hidden"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp}
-              >
-                <img
-                  ref={imageRef}
-                  src={damageImages.find((img) => img.id === activeImageId)?.url}
-                  alt="Vehicle Damage"
-                  className="w-full object-contain max-h-[500px]"
-                  style={{ cursor: isAddingNew ? 'crosshair' : 'default' }}
-                />
-                
-                {currentImageAssessments.map((assessment) => (
-                  <div
-                    key={assessment.id}
-                    className={cn(
-                      "ai-bounding-box",
-                      `ai-bounding-box-${assessment.severity}`,
-                      selectedDamage === assessment.id && "ai-bounding-box-selected"
-                    )}
-                    style={{
-                      left: `${assessment.position.x}%`,
-                      top: `${assessment.position.y}%`,
-                      width: `${assessment.position.width}%`,
-                      height: `${assessment.position.height}%`,
-                    }}
-                    onClick={() => handleBoxClick(assessment.id)}
-                  >
-                    {selectedDamage === assessment.id && (
-                      <div className="absolute -top-6 left-0 bg-white border border-gray-200 rounded px-2 py-1 text-xs font-medium shadow-sm">
-                        {assessment.type}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                
-                {isDrawing && (
-                  <div
-                    className="ai-bounding-box ai-bounding-box-medium"
-                    style={{
-                      left: `${newBoxPosition.x}%`,
-                      top: `${newBoxPosition.y}%`,
-                      width: `${newBoxPosition.width}%`,
-                      height: `${newBoxPosition.height}%`,
-                    }}
-                  ></div>
-                )}
-              </div>
-              
-              <div className="mt-4 flex flex-wrap gap-4">
-                {severityLegend.map((item) => (
-                  <div key={item.label} className="flex items-center">
-                    <div className={`w-4 h-4 ${item.class} mr-2`}></div>
-                    <span className="text-sm text-muted-foreground">{item.label}</span>
-                  </div>
-                ))}
-              </div>
+              <SeverityLegend items={severityLegend} />
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>AI Detection Confidence</CardTitle>
+              <CardTitle>Damage Analysis</CardTitle>
               <CardDescription>
-                AI confidence levels and technical analysis
+                Vehicle information and parts damage analysis
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm p-3 bg-primary/5 rounded-md">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                  <span>
-                    AI has analyzed the uploaded images with <strong>92% confidence</strong>. 
-                    {currentImageAssessments.length} damage areas detected in current view.
-                  </span>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium">AI Detection Notes:</h4>
-                  <ul className="list-disc pl-5 space-y-1 text-sm">
-                    <li>Deep impact damage detected on passenger side door</li>
-                    <li>Paint scratches requiring color matching and refinishing</li>
-                    <li>Potential underlying structural damage requiring further inspection</li>
-                    <li>Repair will require parts replacement and extensive labor</li>
-                  </ul>
-                </div>
-              </div>
+            <CardContent className="space-y-6">
+              <VehicleInfo 
+                vehicleData={vehicleData}
+                editingVehicleInfo={editingVehicleInfo}
+                setEditingVehicleInfo={setEditingVehicleInfo}
+                setVehicleData={setVehicleData}
+                saveVehicleInfo={saveVehicleInfo}
+              />
+
+              <DamageTable 
+                damages={damageAssessments}
+                selectedDamage={selectedDamage}
+                setSelectedDamage={setSelectedDamage}
+              />
             </CardContent>
           </Card>
+
+          <AIConfidenceCard currentImageAssessments={currentImageAssessments} />
         </div>
 
         <div className="space-y-4">
@@ -454,208 +389,23 @@ const Analysis = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {selectedDamage ? (
-                isEditing ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium">Damage Type</label>
-                      <Select
-                        value={editingAssessment.type}
-                        onValueChange={(value) => 
-                          setEditingAssessment({ ...editingAssessment, type: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select damage type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="Dent">Dent</SelectItem>
-                            <SelectItem value="Scratch">Scratch</SelectItem>
-                            <SelectItem value="Paint Scratch">Paint Scratch</SelectItem>
-                            <SelectItem value="Deep Scratch">Deep Scratch</SelectItem>
-                            <SelectItem value="Bumper Damage">Bumper Damage</SelectItem>
-                            <SelectItem value="Glass Damage">Glass Damage</SelectItem>
-                            <SelectItem value="Structural Damage">Structural Damage</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Severity</label>
-                      <Select
-                        value={editingAssessment.severity}
-                        onValueChange={(value) => 
-                          setEditingAssessment({ ...editingAssessment, severity: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select severity" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Notes</label>
-                      <textarea
-                        className="w-full mt-1 p-2 border rounded-md text-sm"
-                        rows={3}
-                        value={editingAssessment.notes}
-                        onChange={(e) => 
-                          setEditingAssessment({ 
-                            ...editingAssessment, 
-                            notes: e.target.value 
-                          })
-                        }
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Estimated Cost ($)</label>
-                      <input
-                        type="number"
-                        className="w-full mt-1 p-2 border rounded-md text-sm"
-                        value={editingAssessment.estimatedCost}
-                        onChange={(e) => 
-                          setEditingAssessment({ 
-                            ...editingAssessment, 
-                            estimatedCost: parseFloat(e.target.value) 
-                          })
-                        }
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end gap-2 mt-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setIsEditing(false);
-                          setEditingAssessment(null);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button 
-                        size="sm"
-                        onClick={saveAssessmentChanges}
-                      >
-                        <Check className="mr-1 h-4 w-4" />
-                        Save Changes
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {(() => {
-                      const assessment = damageAssessments.find(
-                        (item) => item.id === selectedDamage
-                      );
-                      
-                      if (!assessment) return null;
-                      
-                      return (
-                        <>
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <h3 className="font-medium">{assessment.type}</h3>
-                              <Badge className={`ai-bounding-box-${assessment.severity} text-black border-0`}>
-                                {assessment.severity.charAt(0).toUpperCase() + assessment.severity.slice(1)} Severity
-                              </Badge>
-                            </div>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEditAssessment(assessment)}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                          
-                          <div>
-                            <h4 className="text-sm font-medium">Notes:</h4>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {assessment.notes || "No notes provided."}
-                            </p>
-                          </div>
-                          
-                          <div>
-                            <h4 className="text-sm font-medium">Estimated Repair Cost:</h4>
-                            <p className="text-lg font-semibold text-primary">
-                              ${assessment.estimatedCost.toFixed(2)}
-                            </p>
-                          </div>
-                          
-                          <div>
-                            <h4 className="text-sm font-medium">Position on Image:</h4>
-                            <div className="grid grid-cols-2 gap-2 mt-1">
-                              <div className="flex items-center text-sm">
-                                <MoveHorizontal className="h-4 w-4 mr-1 text-muted-foreground" />
-                                {assessment.position.x.toFixed(1)}% x {assessment.position.width.toFixed(1)}%
-                              </div>
-                              <div className="flex items-center text-sm">
-                                <MoveVertical className="h-4 w-4 mr-1 text-muted-foreground" />
-                                {assessment.position.y.toFixed(1)}% x {assessment.position.height.toFixed(1)}%
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                )
-              ) : (
-                <div className="flex flex-col items-center justify-center h-48 text-center">
-                  <Circle className="h-12 w-12 text-muted-foreground/20 mb-2" />
-                  <p className="text-muted-foreground">
-                    Select a damage area on the image to view and edit details
-                  </p>
-                </div>
-              )}
+              <AssessmentDetails 
+                selectedDamage={selectedDamage}
+                isEditing={isEditing}
+                editingAssessment={editingAssessment}
+                damageAssessments={damageAssessments}
+                handleEditAssessment={handleEditAssessment}
+                saveAssessmentChanges={saveAssessmentChanges}
+                setIsEditing={setIsEditing}
+                setEditingAssessment={setEditingAssessment}
+              />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Analysis Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Total Damage Points:</p>
-                  <p className="text-sm">{damageAssessments.length}</p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">High Severity Issues:</p>
-                  <p className="text-sm">
-                    {damageAssessments.filter(d => d.severity === "high").length}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Estimated Total Cost:</p>
-                  <p className="text-sm font-bold">
-                    ${damageAssessments.reduce((sum, item) => sum + item.estimatedCost, 0).toFixed(2)}
-                  </p>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium">Analysis Status:</p>
-                  <Badge className="bg-blue-500 hover:bg-blue-600">In Progress</Badge>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full" onClick={handleFinishAnalysis}>
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Complete Analysis & Generate Estimate
-              </Button>
-            </CardFooter>
-          </Card>
+          <AnalysisSummary 
+            damageAssessments={damageAssessments}
+            handleFinishAnalysis={handleFinishAnalysis}
+          />
         </div>
       </div>
 
