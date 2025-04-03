@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -362,6 +363,9 @@ const Analysis = () => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
+          {/* Moved the FraudDetectionCard to the top */}
+          <FraudDetectionCard damageAssessments={damageAssessments} />
+
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -459,8 +463,6 @@ const Analysis = () => {
           </Card>
 
           <AIConfidenceCard currentImageAssessments={currentImageAssessments} />
-          
-          <FraudDetectionCard damageAssessments={damageAssessments} />
         </div>
 
         <div className="space-y-4">
