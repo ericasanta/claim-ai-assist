@@ -1,7 +1,6 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import AppLayout from '@/layouts/AppLayout'
+
+import { Routes, Route } from 'react-router-dom'
+import AppLayout from '@/components/layout/AppLayout'
 import Dashboard from '@/pages/Dashboard'
 import ClaimsList from '@/pages/ClaimsList'
 import NewClaim from '@/pages/NewClaim'
