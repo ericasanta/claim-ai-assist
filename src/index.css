@@ -101,3 +101,39 @@
 .animate-bounce-subtle {
   animation: bounce-subtle 2s ease-in-out infinite;
 }
+
+/* AI Damage Analysis Bounding Boxes */
+.ai-bounding-box {
+  position: absolute;
+  border: 2px solid;
+  border-radius: 2px;
+  pointer-events: all;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.ai-bounding-box:hover {
+  opacity: 0.9;
+  transform: scale(1.01);
+}
+
+.ai-bounding-box-selected {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #3b82f6;
+  z-index: 10;
+}
+
+.ai-bounding-box-low {
+  border-color: rgba(96, 165, 250, 0.7);
+  background-color: rgba(96, 165, 250, 0.2);
+}
+
+.ai-bounding-box-medium {
+  border-color: rgba(251, 191, 36, 0.7);
+  background-color: rgba(251, 191, 36, 0.2);
+}
+
+.ai-bounding-box-high {
+  border-color: rgba(239, 68, 68, 0.7);
+  background-color: rgba(239, 68, 68, 0.2);
+}
